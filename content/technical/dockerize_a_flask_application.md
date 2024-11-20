@@ -1,6 +1,6 @@
 +++
 date = '2024-11-19T15:55:42Z'
-draft = true
+draft = false
 title = 'Dockerize a Flask Application'
 tags=['technical']
 +++
