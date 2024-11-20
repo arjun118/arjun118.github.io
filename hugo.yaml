@@ -1,0 +1,47 @@
+baseURL: "https://arjun118.github.io/"
+languageCode: "en-us"
+title: "Cicada's Blog"
+theme: "PaperMod"
+params:
+  mainSections: ["technical", "others"]
+  # add the icons to the home profile/landing page
+  homeInfoParams:
+    Title: Hi There, Welcome!
+    Content: Hope you'll like the content
+
+  socialIcons:
+    - name: "Github"
+      url: "http://github.com/arjun118"
+  showShareButtons: true
+  ShowReadingTime: true
+  ShowToc: true
+  TocOpen: true
+  ShowBreadCrumbs: true
+  hideSummary: true
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON # for search
+menu:
+  main:
+    - identifier: "home"
+      name: "Home"
+      url: "/"
+      weight: 1
+    - identifier: "archive"
+      name: "Archive"
+      url: "/archive/"
+      weight: 2
+    - identifier: "tags"
+      name: "Tags"
+      url: "/tags/"
+      weight: 3
+    - identifier: "technical"
+      name: "Technical"
+      url: "/technical/"
+      weight: 4
+    - identifier: "others"
+      name: "Others"
+      url: "/others/"
+      weight: 5

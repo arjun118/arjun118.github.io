@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Tech on Cicada&#39;s Blog</title>
+    <link>http://localhost:1313/tags/tech/</link>
+    <description>Recent content in Tech on Cicada&#39;s Blog</description>
+    <generator>Hugo -- 0.138.0</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 17 Nov 2024 19:49:49 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/tech/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Flask</title>
+      <link>http://localhost:1313/technical/flask/</link>
+      <pubDate>Sun, 17 Nov 2024 19:49:49 +0000</pubDate>
+      <guid>http://localhost:1313/technical/flask/</guid>
+      <description>&lt;h1 id=&#34;this-is-a-blog-about-flask-and-its-dockerizing-methods-and-more&#34;&gt;this is a blog about flask and its dockerizing methods and more&lt;/h1&gt;</description>
+    </item>
+  </channel>
+</rss>
