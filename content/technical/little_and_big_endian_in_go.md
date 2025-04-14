@@ -1,6 +1,6 @@
 +++
 date = '2025-04-14T10:28:30Z'
-draft = true
+draft = false
 title = 'Little and Big Endian in Go'
 tags=['technical']
 +++
