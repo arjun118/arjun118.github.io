@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Technical on Cicada&#39;s Blog</title>
+    <link>https://arjun118.github.io/tags/technical/</link>
+    <description>Recent content in Technical on Cicada&#39;s Blog</description>
+    <generator>Hugo -- 0.138.0</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 14 Apr 2025 10:28:30 +0000</lastBuildDate>
+    <atom:link href="https://arjun118.github.io/tags/technical/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Little and Big Endian in Go</title>
+      <link>https://arjun118.github.io/technical/little_and_big_endian_in_go/</link>
+      <pubDate>Mon, 14 Apr 2025 10:28:30 +0000</pubDate>
+      <guid>https://arjun118.github.io/technical/little_and_big_endian_in_go/</guid>
+      <description>&lt;p&gt;Hey there, good to see you here.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;ve picked up golang to learn this summer. so I thought building toy projects would be a good way to start with. In the process I stumbled upon &lt;a href=&#34;https://courses.calhoun.io/courses/cor_gophercises&#34;&gt;gophercises&lt;/a&gt; which is arguably one of the best resource to learn to while having fun&lt;/p&gt;
+&lt;p&gt;I was trying my hand at building a command line todo tool or task list &lt;a href=&#34;https://courses.calhoun.io/lessons/les_goph_35&#34;&gt;project in gophercises&lt;/a&gt;. tbh it&amp;rsquo;s pretty basic but i get to try out boltdb and the cobra tools which helps you in building command line applications faster.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Dockerize a Flask Application</title>
+      <link>https://arjun118.github.io/technical/dockerize_a_flask_application/</link>
+      <pubDate>Tue, 19 Nov 2024 15:55:42 +0000</pubDate>
+      <guid>https://arjun118.github.io/technical/dockerize_a_flask_application/</guid>
+      <description>&lt;blockquote&gt;
+&lt;p&gt;This blog assumes that you are familiar with docker and it&amp;rsquo;s basic concepts such as volumes (that&amp;rsquo;s the only concept we gonna use either way 😅).&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;We have a flask application which is basically a social blogging site where users can register, login (ofcourse), make posts, comment, follow other users and with role based authentication implemented for granting appropriate permissions for users, moderators and admins.&lt;/p&gt;
+&lt;p&gt;Following the good practice of using a separate python virtual environments to work on different projects, i&amp;rsquo;ve created a virtual environment using the &lt;code&gt;venv&lt;/code&gt; python module and built my application in that environment so i could keep my projects&amp;rsquo; isolated&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

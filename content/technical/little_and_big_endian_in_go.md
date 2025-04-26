@@ -97,7 +97,7 @@ err = b.Put(itob(int(id)), []byte(task))
 
 if we take a step back and look at `Put` in boltdb's documentation, we'd find
 
-![alt text](../../static/images/bucket_put.png)
+![signature of Put   function](/images/bucket_put.png)
 
 looking by the signature ,we can make out that we need to provide a slice of bytes as our key and as our value
 
