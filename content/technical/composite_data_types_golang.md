@@ -241,7 +241,7 @@ prices["mango"] = 56
 delete(prices, "apple")
 ```
 
-### Looping over an array
+### Looping over a map
 
 ```go
 for fruit, price := range prices {
@@ -264,7 +264,7 @@ aggregate data type that groups together zero or more names values of arbitrary 
 
 each value is called a field
 
-# Declaration and usage
+## Declaration and usage
 
 let's define a `Employee` Struct
 
@@ -370,7 +370,7 @@ pp := new(Point)
 *pp = Point{1, 2}
 ```
 
-## Struct Embedding and Anonymous fields
+### Struct Embedding and Anonymous fields
 
 when you declare a field with no name but a type in a struct, they are called anonymous fields
 
