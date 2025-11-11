@@ -73,7 +73,7 @@ the above code, `&emp.Promote(100000,"IC2")` does not work as intended because,i
 
 There are few correct ways of using it
 
-## Calling a method with pointer receiver
+# Calling a method with pointer receiver
 
 ## Method 1
 
@@ -128,6 +128,8 @@ fresher:= empptr.IsFresher()
 we had talked about struct embedding and anonymous fields in a struct and the ease of access they provide in my `composite data types` blog.
 
 the idea here remains the same let's see how we can compose structs and use the methods of other structs by embedding them
+
+## Example
 
 ```go
 package main
@@ -214,6 +216,8 @@ yields a `method value`, a function that binds a method to a specific receiver v
 
 lets look at an example with a struct which defines a point in a cartesian plane
 
+## Example
+
 ```go
 type Point struct  {X, Y float64}
 
@@ -250,6 +254,8 @@ e.IsFresher()
 now what a method expression is , it yields a function value with a regular first parameter taking the place of the receiver and rest all parameters carried so that we ca call it just like we would a function, without any selector syntax, here is an example
 
 i am adding another method to our `Point` struct named `Translate`
+
+## Example
 
 ```go
 func (p *Point) Translate(angle float64) {
