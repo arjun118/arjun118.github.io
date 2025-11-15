@@ -291,8 +291,4 @@ func(*main.Point, float64)
 
 the function signature of slope and translate are what we expected. since `Translate` is a method which has pointer receiver , it has a pointer to the struct Point as it's first paramter
 
-# Nil as a receiver value
-
-i was in a rush to complete this. I will write on this sometime later. sorry :(
-
 Thank you for reading!
