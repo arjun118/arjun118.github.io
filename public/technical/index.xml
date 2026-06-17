@@ -1,32 +1,82 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Technical blogs on Cicada&#39;s Blog</title>
-    <link>https://arjun118.github.io/technical/</link>
+    <link>http://localhost:1313/technical/</link>
     <description>Recent content in Technical blogs on Cicada&#39;s Blog</description>
-    <generator>Hugo -- 0.138.0</generator>
+    <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 14 Apr 2025 10:28:30 +0000</lastBuildDate>
-    <atom:link href="https://arjun118.github.io/technical/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 16 Jun 2026 23:21:46 +0530</lastBuildDate>
+    <atom:link href="http://localhost:1313/technical/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Building a Vod Backend in Golang - Part 1</title>
+      <link>http://localhost:1313/technical/building_a_vod_backend_in_golang_part_1/</link>
+      <pubDate>Tue, 16 Jun 2026 23:21:46 +0530</pubDate>
+      <guid>http://localhost:1313/technical/building_a_vod_backend_in_golang_part_1/</guid>
+      <description>&lt;p&gt;In this series (hope i continue to build this) we wil learn about building a scalable (eventually) video-on-demand backend in golang.&lt;/p&gt;&#xA;&lt;p&gt;We will go through a few naive implementations until we reach some architecture which is actually scalable (we won&amp;rsquo;t be using any CDN here, but our final pattern will be resembling that, say you can swap out local imlementation of video delivery with cdn easily)&lt;/p&gt;&#xA;&lt;p&gt;Code will be available at &lt;a href=&#34;https://github.com/arjun118/vod&#34;&gt;github&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Sampling Methods</title>
+      <link>http://localhost:1313/technical/sampling_methods/</link>
+      <pubDate>Fri, 29 May 2026 21:57:46 +0530</pubDate>
+      <guid>http://localhost:1313/technical/sampling_methods/</guid>
+      <description>&lt;p&gt;Let&amp;rsquo;s look at some sampling methods used to control the randomness of an LLM&amp;rsquo;s text generation.&lt;/p&gt;&#xA;&lt;h1 id=&#34;background&#34;&gt;Background&lt;/h1&gt;&#xA;&lt;p&gt;LLMs by nature are auto-regressive. Meaning the future values (tokens) are predicted by learning from its own past values&lt;/p&gt;&#xA;&lt;blockquote&gt;&#xA;&lt;p&gt;next step in the sequence depends directly on the steps that came before it&lt;/p&gt;&#xA;&lt;/blockquote&gt;&#xA;&lt;blockquote&gt;&#xA;&lt;p&gt;each new word is generated based on the context of  all the words that were generated previously&lt;/p&gt;&#xA;&lt;/blockquote&gt;&#xA;&lt;p&gt;You can control this exact behaviour, how randomly you want your LLM to generate the next token&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Self-Attention Variations</title>
+      <link>http://localhost:1313/technical/attention_variations/</link>
+      <pubDate>Fri, 08 May 2026 20:46:06 +0530</pubDate>
+      <guid>http://localhost:1313/technical/attention_variations/</guid>
+      <description>&lt;p&gt;As the title suggests, we will look at some self-attention mechanisms in this blog. These are by no means all the known attention mechanisms.&#xA;I’m writing these based on my understanding while trying to keep the implementations accurate.&lt;/p&gt;&#xA;&lt;h1 id=&#34;causal-scaled-dot-product-attention&#34;&gt;Causal Scaled dot product attention&lt;/h1&gt;&#xA;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/attention_formula.png&#34; alt=&#34;attention_formula&#34;&gt;&lt;/p&gt;&#xA;&lt;p&gt;This is the original (“vanilla”) attention mechanism proposed in the Attention Is All You Need paper.&lt;/p&gt;&#xA;&lt;p&gt;we will implement Causal (future tokens masked) scaled dot product self-attention&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Interfaces in Golang</title>
+      <link>http://localhost:1313/technical/interfaces_golang/</link>
+      <pubDate>Sat, 15 Nov 2025 13:11:24 +0530</pubDate>
+      <guid>http://localhost:1313/technical/interfaces_golang/</guid>
+      <description>&lt;p&gt;I am not familiar with the interfaces that exists in other languages, so i will try my best to explain what interfaces are in golang&lt;/p&gt;&#xA;&lt;h1 id=&#34;introduction&#34;&gt;Introduction&lt;/h1&gt;&#xA;&lt;p&gt;by now you should be knowing the terms , &lt;code&gt;concrete type&lt;/code&gt;, and &lt;code&gt;abstract type&lt;/code&gt;&lt;/p&gt;&#xA;&lt;p&gt;here are some quick pointers&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;strong&gt;concrete type&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;specifies exact representation of its values (struct layout, slice header, pointer, etc.)&lt;/li&gt;&#xA;&lt;li&gt;exposes that the intrinsic operations of that representation (arithmetic for numbers, or indexing,append and range for slices)&lt;/li&gt;&#xA;&lt;li&gt;may also provide additional behaviour through its methods&lt;/li&gt;&#xA;&lt;li&gt;zero value is well defined&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;strong&gt;abstract type&lt;/strong&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Methods In Golang</title>
+      <link>http://localhost:1313/technical/methods_golang/</link>
+      <pubDate>Sun, 09 Nov 2025 20:09:57 +0530</pubDate>
+      <guid>http://localhost:1313/technical/methods_golang/</guid>
+      <description>&lt;p&gt;I am skipping functions and directly jumping in to methods. I will cover functions in detail but let&amp;rsquo;s get through methods&#xA;quickly since it&amp;rsquo;s relatively a simple topic&lt;/p&gt;&#xA;&lt;p&gt;If you are coming from any programming language, you are already familiar with methods.&lt;/p&gt;&#xA;&lt;h1 id=&#34;declaration&#34;&gt;Declaration&lt;/h1&gt;&#xA;&lt;p&gt;A traditional functional declaration in golang is as below&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;&#34;&gt;&lt;code class=&#34;language-go&#34; data-lang=&#34;go&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Greet&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt;{&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;fmt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;Sprintf&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;hello, %s!&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;)&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When functions are tied to a particular type, they are called Methods (just a funny way of thinking about them). For that to happen there has to be some changes in the way declare method from the way we declare a function&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Composite Data Types Golang</title>
+      <link>http://localhost:1313/technical/composite_data_types_golang/</link>
+      <pubDate>Wed, 01 Oct 2025 16:30:41 +0530</pubDate>
+      <guid>http://localhost:1313/technical/composite_data_types_golang/</guid>
+      <description>&lt;p&gt;Let&amp;rsquo;s go over some composite (aggregate data types) that go has to offer&lt;/p&gt;&#xA;&lt;p&gt;We will be covering&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;arrays&lt;/li&gt;&#xA;&lt;li&gt;slices&lt;/li&gt;&#xA;&lt;li&gt;structs&lt;/li&gt;&#xA;&lt;li&gt;maps&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;arrays&#34;&gt;Arrays&lt;/h1&gt;&#xA;&lt;p&gt;Arrays are homoegeneous in golang.Meaning, all elements have the same type&lt;/p&gt;&#xA;&lt;p&gt;Arrays are fixed in size. once you declare it there is not way for you to increase the size of the said array without creating a new one&lt;/p&gt;&#xA;&lt;p&gt;indexing arrays in go is same as any other language&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Basic Data Types Golang</title>
+      <link>http://localhost:1313/technical/basic_data_types_golang/</link>
+      <pubDate>Mon, 15 Sep 2025 09:24:09 +0530</pubDate>
+      <guid>http://localhost:1313/technical/basic_data_types_golang/</guid>
+      <description>&lt;p&gt;In this blog, we will go over some basic data types of golang.&lt;/p&gt;&#xA;&lt;p&gt;This is just me writing about what i learn&amp;rsquo;t in golang&lt;/p&gt;&#xA;&lt;p&gt;Reference: &lt;a href=&#34;https://www.oreilly.com/library/view/the-go-programming/9780134190570/&#34;&gt;The Go Programming Language book&lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;Go&amp;rsquo;s data types fall in to 4 types&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;Basic types&lt;/strong&gt;: numbers, strings, booleans (these are what we will be going over in this blog.)&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Aggregate types&lt;/strong&gt;: arrays, structs, slices etc. (in the coming blog)&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Reference types&lt;/strong&gt;: pointers, maps, functions, channels etc. (in the coming blogs)&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Interface type&lt;/strong&gt; (in the coming blogs)&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h1 id=&#34;basic-data-types&#34;&gt;Basic Data Types&lt;/h1&gt;&#xA;&lt;p&gt;In this I&amp;rsquo;ll cover intergers, floats, strings, boolean. Nothing too fancy. just in brief. If you already experienced in Go. Please skip this blog and save your time&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Difference Between Handler,Handlerfunc,Handle,Handlefunc in Go</title>
+      <link>http://localhost:1313/technical/difference_between_handler_handlerfunc_handle_handlefunc_in_go/</link>
+      <pubDate>Sat, 26 Apr 2025 18:09:29 +0000</pubDate>
+      <guid>http://localhost:1313/technical/difference_between_handler_handlerfunc_handle_handlefunc_in_go/</guid>
+      <description>&lt;p&gt;Let&amp;rsquo;s see what is the difference between Handler, HandlerFunc, Handle, HandleFunc in the net/http package in go and how to use them&lt;/p&gt;&#xA;&lt;h1 id=&#34;handler&#34;&gt;Handler&lt;/h1&gt;&#xA;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/handler.png&#34; alt=&#34;Handler definition&#34;&gt;&lt;/p&gt;&#xA;&lt;blockquote&gt;&#xA;&lt;p&gt;type: &lt;code&gt;interface&lt;/code&gt;&lt;/p&gt;&#xA;&lt;/blockquote&gt;&#xA;&lt;p&gt;as you can see Handler is an interface. this is the core contract for any object that serve or respond to an HTTP request in Go&lt;/p&gt;&#xA;&lt;p&gt;if a particular type wants to act as an HTTP handler, it must implement the &lt;code&gt;ServeHTTP&lt;/code&gt; method&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Little and Big Endian in Go</title>
-      <link>https://arjun118.github.io/technical/little_and_big_endian_in_go/</link>
+      <link>http://localhost:1313/technical/little_and_big_endian_in_go/</link>
       <pubDate>Mon, 14 Apr 2025 10:28:30 +0000</pubDate>
-      <guid>https://arjun118.github.io/technical/little_and_big_endian_in_go/</guid>
-      <description>&lt;p&gt;Hey there, good to see you here.&lt;/p&gt;
-&lt;p&gt;I&amp;rsquo;ve picked up golang to learn this summer. so I thought building toy projects would be a good way to start with. In the process I stumbled upon &lt;a href=&#34;https://courses.calhoun.io/courses/cor_gophercises&#34;&gt;gophercises&lt;/a&gt; which is arguably one of the best resource to learn to while having fun&lt;/p&gt;
-&lt;p&gt;I was trying my hand at building a command line todo tool or task list &lt;a href=&#34;https://courses.calhoun.io/lessons/les_goph_35&#34;&gt;project in gophercises&lt;/a&gt;. tbh it&amp;rsquo;s pretty basic but i get to try out boltdb and the cobra tools which helps you in building command line applications faster.&lt;/p&gt;</description>
+      <guid>http://localhost:1313/technical/little_and_big_endian_in_go/</guid>
+      <description>&lt;p&gt;Hey there, good to see you here.&lt;/p&gt;&#xA;&lt;p&gt;I&amp;rsquo;ve picked up golang to learn this summer. so I thought building toy projects would be a good way to start with. In the process I stumbled upon &lt;a href=&#34;https://courses.calhoun.io/courses/cor_gophercises&#34;&gt;gophercises&lt;/a&gt; which is arguably one of the best resource to learn to while having fun&lt;/p&gt;&#xA;&lt;p&gt;I was trying my hand at building a command line todo tool or task list &lt;a href=&#34;https://courses.calhoun.io/lessons/les_goph_35&#34;&gt;project in gophercises&lt;/a&gt;. tbh it&amp;rsquo;s pretty basic but i get to try out boltdb and the cobra tools which helps you in building command line applications faster.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Dockerize a Flask Application</title>
-      <link>https://arjun118.github.io/technical/dockerize_a_flask_application/</link>
+      <link>http://localhost:1313/technical/dockerize_a_flask_application/</link>
       <pubDate>Tue, 19 Nov 2024 15:55:42 +0000</pubDate>
-      <guid>https://arjun118.github.io/technical/dockerize_a_flask_application/</guid>
-      <description>&lt;blockquote&gt;
-&lt;p&gt;This blog assumes that you are familiar with docker and it&amp;rsquo;s basic concepts such as volumes (that&amp;rsquo;s the only concept we gonna use either way 😅).&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;We have a flask application which is basically a social blogging site where users can register, login (ofcourse), make posts, comment, follow other users and with role based authentication implemented for granting appropriate permissions for users, moderators and admins.&lt;/p&gt;
-&lt;p&gt;Following the good practice of using a separate python virtual environments to work on different projects, i&amp;rsquo;ve created a virtual environment using the &lt;code&gt;venv&lt;/code&gt; python module and built my application in that environment so i could keep my projects&amp;rsquo; isolated&lt;/p&gt;</description>
+      <guid>http://localhost:1313/technical/dockerize_a_flask_application/</guid>
+      <description>&lt;blockquote&gt;&#xA;&lt;p&gt;This blog assumes that you are familiar with docker and it&amp;rsquo;s basic concepts such as volumes (that&amp;rsquo;s the only concept we gonna use either way 😅).&lt;/p&gt;&#xA;&lt;/blockquote&gt;&#xA;&lt;p&gt;We have a flask application which is basically a social blogging site where users can register, login (ofcourse), make posts, comment, follow other users and with role based authentication implemented for granting appropriate permissions for users, moderators and admins.&lt;/p&gt;&#xA;&lt;p&gt;Following the good practice of using a separate python virtual environments to work on different projects, i&amp;rsquo;ve created a virtual environment using the &lt;code&gt;venv&lt;/code&gt; python module and built my application in that environment so i could keep my projects&amp;rsquo; isolated&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

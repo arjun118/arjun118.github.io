@@ -2,28 +2,58 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://arjun118.github.io/</loc>
+    <loc>http://localhost:1313/technical/building_a_vod_backend_in_golang_part_1/</loc>
+    <lastmod>2026-06-16T23:21:46+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/</loc>
+    <lastmod>2026-06-16T23:21:46+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/golang/</loc>
+    <lastmod>2026-06-16T23:21:46+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/</loc>
+    <lastmod>2026-06-16T23:21:46+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/technical/</loc>
+    <lastmod>2026-06-16T23:21:46+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/technical/</loc>
+    <lastmod>2026-06-16T23:21:46+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/technical/sampling_methods/</loc>
+    <lastmod>2026-05-29T21:57:46+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/tags/llm/</loc>
+    <lastmod>2026-05-08T20:46:06+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/technical/attention_variations/</loc>
+    <lastmod>2026-05-08T20:46:06+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/technical/interfaces_golang/</loc>
+    <lastmod>2025-11-15T13:11:24+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/technical/methods_golang/</loc>
+    <lastmod>2025-11-09T20:09:57+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/technical/composite_data_types_golang/</loc>
+    <lastmod>2025-10-01T16:30:41+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/technical/basic_data_types_golang/</loc>
+    <lastmod>2025-09-15T09:24:09+05:30</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/technical/difference_between_handler_handlerfunc_handle_handlefunc_in_go/</loc>
+    <lastmod>2025-04-26T18:09:29+00:00</lastmod>
+  </url><url>
+    <loc>http://localhost:1313/technical/little_and_big_endian_in_go/</loc>
     <lastmod>2025-04-14T10:28:30+00:00</lastmod>
   </url><url>
-    <loc>https://arjun118.github.io/technical/little_and_big_endian_in_go/</loc>
-    <lastmod>2025-04-14T10:28:30+00:00</lastmod>
-  </url><url>
-    <loc>https://arjun118.github.io/tags/</loc>
-    <lastmod>2025-04-14T10:28:30+00:00</lastmod>
-  </url><url>
-    <loc>https://arjun118.github.io/tags/technical/</loc>
-    <lastmod>2025-04-14T10:28:30+00:00</lastmod>
-  </url><url>
-    <loc>https://arjun118.github.io/technical/</loc>
-    <lastmod>2025-04-14T10:28:30+00:00</lastmod>
-  </url><url>
-    <loc>https://arjun118.github.io/technical/dockerize_a_flask_application/</loc>
+    <loc>http://localhost:1313/technical/dockerize_a_flask_application/</loc>
     <lastmod>2024-11-19T15:55:42+00:00</lastmod>
   </url><url>
-    <loc>https://arjun118.github.io/archive/</loc>
+    <loc>http://localhost:1313/archive/</loc>
   </url><url>
-    <loc>https://arjun118.github.io/categories/</loc>
+    <loc>http://localhost:1313/categories/</loc>
   </url><url>
-    <loc>https://arjun118.github.io/others/</loc>
+    <loc>http://localhost:1313/others/</loc>
   </url>
 </urlset>

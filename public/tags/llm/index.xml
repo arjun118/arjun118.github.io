@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>LLM on Cicada&#39;s Blog</title>
+    <link>http://localhost:1313/tags/llm/</link>
+    <description>Recent content in LLM on Cicada&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 08 May 2026 20:46:06 +0530</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/llm/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Self-Attention Variations</title>
+      <link>http://localhost:1313/technical/attention_variations/</link>
+      <pubDate>Fri, 08 May 2026 20:46:06 +0530</pubDate>
+      <guid>http://localhost:1313/technical/attention_variations/</guid>
+      <description>&lt;p&gt;As the title suggests, we will look at some self-attention mechanisms in this blog. These are by no means all the known attention mechanisms.&#xA;I’m writing these based on my understanding while trying to keep the implementations accurate.&lt;/p&gt;&#xA;&lt;h1 id=&#34;causal-scaled-dot-product-attention&#34;&gt;Causal Scaled dot product attention&lt;/h1&gt;&#xA;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/images/attention_formula.png&#34; alt=&#34;attention_formula&#34;&gt;&lt;/p&gt;&#xA;&lt;p&gt;This is the original (“vanilla”) attention mechanism proposed in the Attention Is All You Need paper.&lt;/p&gt;&#xA;&lt;p&gt;we will implement Causal (future tokens masked) scaled dot product self-attention&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

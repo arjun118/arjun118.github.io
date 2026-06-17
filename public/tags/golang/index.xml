@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Golang on Cicada&#39;s Blog</title>
+    <link>http://localhost:1313/tags/golang/</link>
+    <description>Recent content in Golang on Cicada&#39;s Blog</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 16 Jun 2026 23:21:46 +0530</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Building a Vod Backend in Golang - Part 1</title>
+      <link>http://localhost:1313/technical/building_a_vod_backend_in_golang_part_1/</link>
+      <pubDate>Tue, 16 Jun 2026 23:21:46 +0530</pubDate>
+      <guid>http://localhost:1313/technical/building_a_vod_backend_in_golang_part_1/</guid>
+      <description>&lt;p&gt;In this series (hope i continue to build this) we wil learn about building a scalable (eventually) video-on-demand backend in golang.&lt;/p&gt;&#xA;&lt;p&gt;We will go through a few naive implementations until we reach some architecture which is actually scalable (we won&amp;rsquo;t be using any CDN here, but our final pattern will be resembling that, say you can swap out local imlementation of video delivery with cdn easily)&lt;/p&gt;&#xA;&lt;p&gt;Code will be available at &lt;a href=&#34;https://github.com/arjun118/vod&#34;&gt;github&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
