@@ -1032,3 +1032,8 @@ i will explain how the request the video segments will be sent to the client whe
 ![private_minio_go_delivery_demo](/images/private_minio_go_delivery_demo.png)
 
 1. observe the playback url is : `http://localhost:8080/media/videos/2026/06/6b40bb6d-1782-4298-b5e3-ee2f95057f48/playlist.m3u8`
+
+
+## Closing
+
+we will see our nginx implementations in the part-2 of this series and part-3 will contain architectural improvements to make our backend scalable and seperate responsibilities (low coupling)
