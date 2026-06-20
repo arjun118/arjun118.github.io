@@ -1,6 +1,6 @@
 +++
 date = '2026-06-18T23:54:25+05:30'
-draft = true
+draft = false
 title = 'Building a Vod Backend in Golang Part 2'
 tags=['technical','golang']
 +++
@@ -19,7 +19,7 @@ Let's start then
 
 # Implementations
 
-## Nginx Reverse Proxy
+## Nginx Reverse Proxy (`branch: nginx_proxy_cache`)
 
 The Provider and the Delivery Will still remain with our minio-instance.
 
@@ -131,3 +131,106 @@ notice the server as `nginx:1.31.2` from our response headers in for the request
 ```
 
 # will continue the next two implementations
+
+## Nginx Reverse Proxy Cache
+
+1. `docker files`, `provider`, `delivery` - all else remain the same except for `nginx.conf`
+
+The only change for this implementation will be with the file `nginx/nginx.conf`
+
+here is the configuration file
+
+```nginx
+events {}
+
+
+http {
+    log_format cachelog
+    '$remote_addr '
+    '$request_uri '
+    '$status '
+    '$upstream_cache_status';
+
+    access_log /var/log/nginx/cache.log cachelog;
+
+
+    proxy_cache_path /var/cache/nginx/hls_cache
+        levels=1:2
+        keys_zone=hls_cache:20m
+        max_size=50g
+        inactive=24h
+        use_temp_path=off;
+
+
+    server{
+        listen 80;
+        client_max_body_size 500M;
+
+        location / {
+            proxy_pass http://backend:8080/;
+        }
+
+        location /api/videos {
+
+            proxy_pass http://backend:8080;
+            proxy_set_header HOST $host;
+            proxy_set_header X-Real-IP $remote_addr;
+
+            proxy_read_timeout 600s;
+            proxy_send_timeout 600s;
+
+        }
+
+
+        location /media/ {
+
+            proxy_cache hls_cache;
+
+            proxy_cache_key "$scheme$proxy_host$request_uri";
+
+            proxy_ignore_headers Cache-Control Expires Set-Cookie;
+
+            proxy_cache_valid 200 24h;
+            proxy_cache_valid 206 24h;
+
+            proxy_cache_use_stale
+                error
+                timeout
+                http_500
+                http_502
+                http_503
+                http_504;
+
+            proxy_cache_background_update on;
+            proxy_cache_lock on;
+            proxy_cache_lock_timeout 10s;
+
+            proxy_force_ranges on;
+
+            add_header X-Cache-Status $upstream_cache_status always;
+
+            proxy_pass http://minio:9000/;
+        }
+
+    }
+}
+```
+
+### Request Lifecycle
+
+![nginx porxy cache flow](/images/nginx_reverse_proxy_cache_flow.png)
+
+1. when the requested object/resource results in a cache miss , nginx will proxy the request to minio-instance and fetch from the source (minio)
+2. on proxying response to the client nginx caches the response data.
+3. in the diagram , in `delivery` the `green lines` show a `cache hit` and `red lines` show a `cache miss`
+
+### Working
+
+![nginx proxy cache demo](/images/nginx_reverse_proxy_cache_demo.png)
+
+1. observe the first request log - it's a cache `MISS`
+2. now when i refreshed the page, essentially requesting the same resource again (manifest and video segements) - it's a cache `HIT`. hence proxy cache in action
+
+## Closing
+
+1. lastly we will cover the `X-Accel-Redirect` along with scoped authentication for application server api routes and Cookie based authentication to access video data.
