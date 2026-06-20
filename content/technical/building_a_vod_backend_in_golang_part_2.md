@@ -19,7 +19,7 @@ Let's start then
 
 # Implementations
 
-## Nginx Reverse Proxy (`branch: nginx_proxy_cache`)
+## Nginx Reverse Proxy (`branch: nginx_reverse_proxy`)
 
 The Provider and the Delivery Will still remain with our minio-instance.
 
@@ -132,7 +132,7 @@ notice the server as `nginx:1.31.2` from our response headers in for the request
 
 # will continue the next two implementations
 
-## Nginx Reverse Proxy Cache
+## Nginx Reverse Proxy Cache (`branch: nginx_reverse_proxy_cache`)
 
 1. `docker files`, `provider`, `delivery` - all else remain the same except for `nginx.conf`
 
