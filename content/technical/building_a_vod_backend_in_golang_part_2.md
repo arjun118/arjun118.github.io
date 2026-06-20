@@ -130,8 +130,6 @@ services:
 notice the server as `nginx:1.31.2` from our response headers in for the request to `playlist0.ts` - reverse proxy in action
 ```
 
-# will continue the next two implementations
-
 ## Nginx Reverse Proxy Cache (`branch: nginx_reverse_proxy_cache`)
 
 1. `docker files`, `provider`, `delivery` - all else remain the same except for `nginx.conf`
