@@ -229,6 +229,303 @@ http {
 1. observe the first request log - it's a cache `MISS`
 2. now when i refreshed the page, essentially requesting the same resource again (manifest and video segements) - it's a cache `HIT`. hence proxy cache in action
 
-## Closing
+## X-Accel-Redirect (branch: x_accel_redirect)
 
-1. lastly we will cover the `X-Accel-Redirect` along with scoped authentication for application server api routes and Cookie based authentication to access video data.
+### Provider , Delivery
+
+1. the provider and delivery will remain the same
+
+### Nginx Configuration
+
+```nginx
+events {}
+
+http {
+    log_format cachelog
+    '$remote_addr '
+    '$request_uri '
+    '$status '
+    '$upstream_cache_status';
+
+    access_log /var/log/nginx/cache.log cachelog;
+
+    error_log /var/log/nginx/error.log debug;
+
+    proxy_cache_path /var/cache/nginx/hls_cache
+        levels=1:2
+        keys_zone=hls_cache:20m
+        max_size=50g
+        inactive=24h
+        use_temp_path=off;
+
+
+    server{
+        listen 80;
+        client_max_body_size 500M;
+
+        location / {
+            proxy_pass http://backend:8080/;
+        }
+
+        location /api/videos {
+
+            proxy_pass http://backend:8080;
+            proxy_set_header HOST $host;
+            proxy_set_header X-Real-IP $remote_addr;
+
+            proxy_read_timeout 600s;
+            proxy_send_timeout 600s;
+
+        }
+
+        location /media/{
+        # this will be a validating/auth backend now
+        # responds with x-accel-redirect header for nginx to know
+        # that the request is valid and it can serve the file
+            proxy_pass http://backend:8080;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+
+        location /_protected/ {
+
+            internal;
+
+            proxy_cache hls_cache;
+
+            proxy_cache_key "$scheme$proxy_host$uri";
+
+            proxy_ignore_headers Cache-Control Expires Set-Cookie;
+
+            proxy_cache_valid 200 24h;
+            proxy_cache_valid 206 24h;
+
+            proxy_cache_use_stale
+                error
+                timeout
+                http_500
+                http_502
+                http_503
+                http_504;
+
+            proxy_cache_background_update on;
+            proxy_cache_lock on;
+            proxy_cache_lock_timeout 10s;
+
+            proxy_force_ranges on;
+
+            add_header X-Cache-Status $upstream_cache_status always;
+            add_header X-Debug-Uri $uri always;
+
+
+            proxy_pass http://minio:9000/;
+        }
+
+    }
+}
+```
+
+### Middleware
+
+we will introduce authentication middleware.
+
+in file: `internal/middleware/auth.go`
+
+```go
+package middleware
+
+import (
+	"encoding/json"
+	"maps"
+	"net/http"
+	"strings"
+)
+
+func writeJson(w http.ResponseWriter, status int, data any, headers http.Header) error {
+	js, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	js = append(js, '\n')
+	maps.Copy(w.Header(), headers)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(js)
+	return nil
+}
+
+func TokenAuthenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) != 2 {
+			http.Error(w, "missing auth header", http.StatusUnauthorized)
+			return
+		}
+
+		if parts[0] != "Bearer" {
+			http.Error(w, "invalid auth scheme", http.StatusUnauthorized)
+			return
+		}
+
+		if parts[1] != "supersecret" {
+			http.Error(w, "invalid token", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func CookieAuthenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Read token from cookie
+		cookie, err := r.Cookie("media_access")
+		if err != nil {
+			http.Error(w, "missing auth cookie", http.StatusUnauthorized)
+			return
+		}
+
+		if cookie.Value != "supersecret" {
+			http.Error(w, "invalid token in cookie", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+```
+
+we will look at the explanation and usage of these in our server code
+
+### Server
+
+lets change see how integrate the middleware and scoped authentication in our application server
+
+```go
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("alive\n"))
+	})
+	//our video delivery access will be a cookie-based authentication
+	r.With(routingmiddleware.CookieAuthenticate).Handle("/media/*", &handlers.RedirectHandler{
+		BucketName: bucketName,
+	})
+	//and our core application server routes will be token(jwt) based authentication
+	r.Route("/api/videos", func(r chi.Router) {
+		r.Use(routingmiddleware.TokenAuthenticate)
+		r.Post("/auth-cookie", videoHandler.GetAuthCookie)
+		r.Post("/", videoHandler.Upload)   // POST /api/videos
+		r.Get("/url", videoHandler.GetURL) // GET /api/videos/url?key=...
+		r.Delete("/", videoHandler.Delete) // DELETE /api/videos?key=...
+	})
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
+```
+
+in a production implementation, the flow will ideally looks like this
+
+The goal of this approach is to keep media assets private while ensuring that the Go application is responsible only for authorization, not for serving video bytes.
+
+### Authentication Flow
+
+1. The client authenticates using their email and password. (we have skipped this part)
+2. The backend issues a signed JWT access token.
+
+#### Media Access Cookie Procuring Flow
+
+1. The client exchanges this token for a short-lived, scoped cookie that grants access to video content.
+2. The browser automatically sends this cookie with every HLS request (`.m3u8` playlists and `.ts` segments).
+
+```text
+Client
+    ↓
+POST /api/videos/auth-cookie
+Authorization: Bearer <jwt>
+    ↓
+Go Application
+    ↓
+Set-Cookie: media_access=<signed-cookie>
+```
+
+#### Media Request Flow
+
+```text
+Client
+    ↓
+GET /media/.../playlist.m3u8
+    ↓
+CookieAuthenticate Middleware
+    ↓
+RedirectHandler
+    ↓
+X-Accel-Redirect: /_protected/videos/...
+    ↓
+Nginx Internal Redirect: http://mini:900/videos/...
+    ↓
+  MinIO
+    ↓
+  Nginx
+    ↓
+  Client
+```
+
+The Go application:
+
+- Validates the scoped media cookie.
+- Verifies that the user is authorized to access the requested resource.
+- Returns a successful response containing an `X-Accel-Redirect` header pointing to the internal media location.
+
+Example:
+
+```http
+HTTP/1.1 200 OK
+X-Accel-Redirect: /_protected/videos/.../playlist.m3u8
+```
+
+#### Internal Media Delivery
+
+Nginx is configured with an internal-only location block:
+
+```nginx
+location /_protected/ {
+    internal;
+    # all the caching related stuff
+    proxy_pass http://minio:9000/;
+}
+```
+
+Because the location is marked as `internal`, clients cannot access it directly.
+
+After receiving the `X-Accel-Redirect` header, Nginx:
+
+1. Performs an internal redirect to the protected location.
+2. Fetches the requested object from MinIO.
+3. Streams the response back to the client.
+
+### Tradeoffs
+
+- Media objects remain private in storage.
+- Clients never learn the underlying MinIO object URLs.
+- Authorization logic stays centralized in the Go application.
+- Video bytes never flow through the application server.
+- Nginx handles streaming, buffering, range requests, and caching efficiently.
+- Easy migration path to signed URLs, signed cookies, or CDN-based delivery in the future.
+
+### Request Lifecycle
+
+![x-acceel-redirect](/images/x_accel_redirect_flow.png)
+
+### Working
+
+![x_accel_redirect_working_missing_auth_cookie](/images/x_accel_redirect_working.png)
+
+![x_accel_redirect_working_missing_auth_cookie](/images/x_accel_redirect_working_missing_auth_cookie.png)
+
+# Closing
+
+That sums up all the implementations. We will look at core architectural changes in the next blogs
