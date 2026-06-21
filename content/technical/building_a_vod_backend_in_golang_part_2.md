@@ -522,9 +522,13 @@ After receiving the `X-Accel-Redirect` header, Nginx:
 
 ### Working
 
-![x_accel_redirect_working_missing_auth_cookie](/images/x_accel_redirect_working.png)
+1. no video will be streamed without media_access cookie
 
 ![x_accel_redirect_working_missing_auth_cookie](/images/x_accel_redirect_working_missing_auth_cookie.png)
+
+2. after cookie is issued, client can access the resource
+
+![x_accel_redirect_working_missing_auth_cookie](/images/x_accel_redirect_working.png)
 
 # Closing
 
