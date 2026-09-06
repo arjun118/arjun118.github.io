@@ -7,16 +7,15 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Search Autocomplete | Cicada&#39;s Blog</title>
 <meta name="keywords" content="technical, golang">
-<meta name="description" content="In this blog, i will try to explain how i build a 3-tier search autocomplete system using a google books ngram dataset. the dataset is not actual search queries dataset. i will explain how i curated the dataset.
-we will be building around “design top k most searched queries”.
+<meta name="description" content="in this blog, i will try to explain how i built a 3-tier search autocomplete system using the google books ngram dataset. the dataset is not an actual search queries dataset, so i will also explain how i curated it.
+we will be building around the problem of designing top k most searched queries.
 
 Full Code on my github
 
 Design Decisions
 
-we will only be having a english corups, we will use unicode points.
-our dataset will contain atmax 10 mil queries (no reasoning behind this - just a random number)
-
+we will only be having an english corpus, and we will use unicode code points.
+our dataset will contain at max 10 mil queries (no reasoning behind this, just a random number)
 
 Dataset
 Format
@@ -245,33 +244,32 @@ every dataset will be formatted into">
     </div>
 </details>
 
-  <div class="post-content md-content"><p>In this blog, i will try to explain how i build a 3-tier search autocomplete system using a google books ngram dataset. the dataset is not actual search queries dataset. i will explain how i curated the dataset.</p>
-<p>we will be building around <code>“design top k most searched queries”.</code></p>
+  <div class="post-content md-content"><p>in this blog, i will try to explain how i built a 3-tier search autocomplete system using the google books ngram dataset. the dataset is not an actual search queries dataset, so i will also explain how i curated it.</p>
+<p>we will be building around the problem of <code>designing top k most searched queries</code>.</p>
 <blockquote>
 <p>Full Code on my <a href="https://github.com/arjun118/system_design_implementations/tree/main/search_autocomplete">github</a></p>
 </blockquote>
 <h1 id="design-decisions">Design Decisions<a hidden class="anchor" aria-hidden="true" href="#design-decisions">#</a></h1>
 <ol>
-<li>we will only be having a english corups, we will use unicode points.</li>
-<li>our dataset will contain atmax 10 mil queries (no reasoning behind this - just a random number)</li>
-<li></li>
+<li>we will only be having an english corpus, and we will use unicode code points.</li>
+<li>our dataset will contain at max 10 mil queries (no reasoning behind this, just a random number)</li>
 </ol>
 <h1 id="dataset">Dataset<a hidden class="anchor" aria-hidden="true" href="#dataset">#</a></h1>
 <h2 id="format">Format<a hidden class="anchor" aria-hidden="true" href="#format">#</a></h2>
 <p>every dataset will be formatted into</p>
 <pre tabindex="0"><code>phrase\tfreq
-</code></pre><p>where <code>phrase</code> is the actual phrase and freq is the number of terms it is searched</p>
+</code></pre><p>where <code>phrase</code> is the actual phrase and <code>freq</code> is the number of times that phrase is searched</p>
 <ol>
-<li>i have tried this with multiple datasets, but my dataset versions are roughly 2</li>
+<li>i have tried this with multiple datasets, but the versions of my dataset are roughly 2</li>
 </ol>
 <h2 id="v1-aol-queries">V1 [AOL QUERIES]<a hidden class="anchor" aria-hidden="true" href="#v1-aol-queries">#</a></h2>
 <ol>
 <li>I have used <a href="https://jeffhuang.com/search_query_logs/">aol_queries</a></li>
 <li>you can read about the dataset here - <a href="https://en.wikipedia.org/wiki/AOL_search_log_release">https://en.wikipedia.org/wiki/AOL_search_log_release</a></li>
-<li>please note that the dataset is not filtered and have nsfw words. i haven&rsquo;t filtered it too and used as-is. please use it at your discretion</li>
-<li>one good thing about this dataset is that i dont need to format this into <code>phrase\tfreq</code> format so we can use it directly</li>
+<li>please note that the dataset is not filtered and has nsfw words. i haven&rsquo;t filtered it either, and used it as-is. please use it at your discretion</li>
+<li>one good thing about this dataset is that i don&rsquo;t need to format it into <code>phrase\tfreq</code> format, so we can use it directly</li>
 </ol>
-<p>sample records in ds:</p>
+<p>sample records in the dataset:</p>
 <pre tabindex="0"><code>google	68513
 mapquest	37252
 google.com	29023
@@ -313,13 +311,13 @@ googlebooks-eng-us-all-5gram-20090715-178
 googlebooks-eng-us-all-5gram-20090715-344
 googlebooks-eng-us-all-5gram-20090715-492
 </code></pre><ol start="3">
-<li>they contain 2-gram,3-gram, 4-gram and 5-grams</li>
-<li>talked to deepseek and claude on how to convert these to my dataset format <code>phrase\tfreq</code></li>
+<li>they contain 2-gram, 3-gram, 4-gram, and 5-gram data</li>
+<li>i talked to deepseek and claude on how to convert these into my dataset format <code>phrase\tfreq</code></li>
 <li>you can find the dataset cleaning and creation code here - <a href="https://github.com/arjun118/system_design_implementations/tree/main/search_autocomplete/cmd/preprocess_ngrams">github</a></li>
-<li>i also have a another stage - performed a single time just before my seeding to monogdb (will discuss what this is in arch section)- but it goes something like this
+<li>i also have another stage, performed a single time just before my seeding to mongo (will discuss what this is in the arch section) - but it goes something like this
 <ol>
-<li>if the start of the phrase is not a letter(unicode) or a digit,we remove that phrase - as i observed this helped me get rid of some illegible phrases starting with parentheses etc. the existence of these points makes sense in this dataset because the dataset is derived from google books ngram dataset</li>
-<li>we convert everythign to lower - meaning our implementation is not case-sensitive</li>
+<li>if the start of the phrase is not a letter (unicode) or a digit, we remove that phrase - as i observed, this helped me get rid of some illegible phrases starting with parentheses, etc. the existence of these makes sense in this dataset, because the dataset is derived from the google books ngram dataset</li>
+<li>we convert everything to lowercase - meaning our implementation is not case-sensitive</li>
 </ol>
 </li>
 </ol>
@@ -338,13 +336,13 @@ googlebooks-eng-us-all-5gram-20090715-492
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">ToLower</span>(string(<span style="color:#a6e22e">runes</span>[<span style="color:#a6e22e">i</span>:]))
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><ol start="7">
-<li>lets look at how we can get to the clean <code>canonical_sorted.txt</code> which is in our desired dataset format for direct seeding</li>
+<li>let&rsquo;s look at how we get to the clean <code>canonical_sorted.txt</code>, which is in our desired dataset format for direct seeding</li>
 </ol>
 <pre tabindex="0"><code>1. take the file generated by `preprocess_ngrams` code.eg: `ds.txt`
 2. normalize each phrase in `ds.txt` and write to a file `normalized_ds.txt`
 3. sort this file lexographically using linux `sort` command
 4. aggregate the final file&#39;s duplicate queries and write to a final file: `canonical_sorted.txt`
-</code></pre><p>sample from <code>canonical_sorted.text</code></p>
+</code></pre><p>sample from <code>canonical_sorted.txt</code>:</p>
 <pre tabindex="0"><code>0 &#34;&#34; for the&#34;	134862
 0 ( no pain	166498
 0 ) and after the	40000
@@ -359,12 +357,12 @@ googlebooks-eng-us-all-5gram-20090715-492
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wc -l canonical_sorted.txt
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># 9646759 canonical_sorted.txt</span>
 </span></span></code></pre></div><h1 id="architecture">Architecture<a hidden class="anchor" aria-hidden="true" href="#architecture">#</a></h1>
-<p>I have iteratively implemented the architecture. i will split into phases</p>
+<p>I have iteratively implemented the architecture. i will split it into phases below</p>
 <h2 id="phase-1-basic-trie---v1-dataset">Phase 1: [BASIC TRIE - V1 Dataset]<a hidden class="anchor" aria-hidden="true" href="#phase-1-basic-trie---v1-dataset">#</a></h2>
-<p>In this phase ,we will take the V1 Dataset</p>
+<p>In this phase, we will take the V1 dataset</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ wc -l aol_queries.txt
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># 433614 aol_queries.txt</span>
-</span></span></code></pre></div><p>and build a trie. before going into any implementation details ,lets look at how our trie is implemented in go</p>
+</span></span></code></pre></div><p>and build a trie. before going into any implementation details, let&rsquo;s look at how our trie is implemented in go</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Reco</span> <span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Word</span> <span style="color:#66d9ef">string</span>
@@ -384,21 +382,21 @@ googlebooks-eng-us-all-5gram-20090715-492
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">K</span>          <span style="color:#66d9ef">int</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">CacheDepth</span> <span style="color:#66d9ef">int</span>
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>this is just like basic tree but a node can have many children. field specifics - what we store is below</p>
+</span></span></code></pre></div><p>this is just like a basic tree, but a node can have many children. field specifics - what we store - is below</p>
 <h3 id="node">Node<a hidden class="anchor" aria-hidden="true" href="#node">#</a></h3>
 <ol>
 <li>a node in our trie</li>
-<li><code>Val</code>: the character this node holds (redundant ,no need to store, i just kept this because it gave me clarity while debugging)</li>
+<li><code>Val</code>: the character this node holds (redundant, no need to store, i just kept this because it gave me clarity while debugging)</li>
 <li><code>Children</code>: the children of this node</li>
 <li><code>IsWord</code>: will be true if a word is formed until the node</li>
-<li><code>Freq</code>: the frequency of this word/phrase from our datset</li>
-<li><code>Top</code>: we cache the top-K most occuring words(using <code>Reco</code> type - which has the word (phrase) and its freq) at this node, (optimization)</li>
+<li><code>Freq</code>: the frequency of this word/phrase from our dataset</li>
+<li><code>Top</code>: we cache the top-K most occurring words at this node (using the <code>Reco</code> type, which has the word/phrase and its freq). this is an optimization</li>
 </ol>
 <h3 id="trie">Trie<a hidden class="anchor" aria-hidden="true" href="#trie">#</a></h3>
 <ol>
 <li><code>Root</code>: also a Node with <code>Val=&quot;&quot;</code></li>
-<li><code>K</code>: for this phase 1 implementation, we initalize this trie with a number K, the number of suggestions/auto-completes to be returned per query</li>
-<li><code>CacheDepth</code>: see point 6 from <code>Node</code>, we limit the depth post which no <code>Top</code> is populated at the node in the trie. we will cache the shallow nodes. this can be set to the number x where <code>x=the average number of characters a user types before selecting a suggestion'</code>. this helps us save memory when all the queries are answered from an in-memory trie (or prefix-index hash map)</li>
+<li><code>K</code>: for this phase 1 implementation, we initialize this trie with a number K, the number of suggestions/auto-completes to be returned per query</li>
+<li><code>CacheDepth</code>: see point 6 from <code>Node</code>, we limit the depth past which no <code>Top</code> is populated at the node in the trie, so we only cache the shallow nodes. this can be set to the number <code>x</code>, where <code>x</code> is the average number of characters a user types before selecting a suggestion. this helps us save memory when all the queries are answered from an in-memory trie (or prefix-index hash map)</li>
 </ol>
 <h3 id="building-the-trie">Building the Trie<a hidden class="anchor" aria-hidden="true" href="#building-the-trie">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BuildTrie</span>(<span style="color:#a6e22e">ipfile</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Trie</span> {
@@ -462,17 +460,17 @@ our insert is also simple</li>
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>, <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">IsWord</span>, <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Freq</span>, <span style="color:#a6e22e">node</span>
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>you can find the whole trie implementation here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/internal/trie/trie.go">github_trie</a></p>
+</span></span></code></pre></div><p>you can find the whole trie implementation here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/internal/trie/trie.go">github_trie</a>.</p>
 <h2 id="phase-2-prefix-index-hash-map---v1-dataset">Phase 2: [PREFIX INDEX HASH MAP - V1 Dataset]<a hidden class="anchor" aria-hidden="true" href="#phase-2-prefix-index-hash-map---v1-dataset">#</a></h2>
 <ol>
-<li>what will include here is a simple hashmap. every prefix that can be formed while traversing the trie will be a <code>key</code> for the hashmap. the value will be what want to return if that prefix is typed (the search query) i.e a list of top-K words.</li>
+<li>what we will include here is a simple hashmap. every prefix that can be formed while traversing the trie will be a <code>key</code> for the hashmap. the value will be what we want to return when that prefix is typed (the search query), i.e., a list of top-K words.</li>
 </ol>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">PrefixIndex</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>][]<span style="color:#a6e22e">Reco</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewPrefixIndex</span>() <span style="color:#a6e22e">PrefixIndex</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">PrefixIndex</span>{}
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>that&rsquo;s it, our prefix index is that simple.we can easily build the prefix index from our trie using</p>
+</span></span></code></pre></div><p>that&rsquo;s it, our prefix index is that simple. we can easily build the prefix index from our trie using</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Trie</span>) <span style="color:#a6e22e">walkForIndex</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>, <span style="color:#a6e22e">prefix</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">pi</span> <span style="color:#a6e22e">PrefixIndex</span>) []<span style="color:#a6e22e">Reco</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">cands</span> <span style="color:#f92672">:=</span> make([][]<span style="color:#a6e22e">Reco</span>, <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Children</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">IsWord</span> {
@@ -490,7 +488,7 @@ our insert is also simple</li>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">prefix</span>] = <span style="color:#a6e22e">top</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">top</span>
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>notice the <code>mergeTopk</code>, we wont re-calcualte the top-K words for every node, we will perform a mergesort on all the children top-k words</p>
+</span></span></code></pre></div><p>notice the <code>mergeTopK</code>, we won&rsquo;t re-calculate the top-K words for every node, instead we will perform a mergesort on the children&rsquo;s top-k words</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">mergeTopK</span>(<span style="color:#a6e22e">lists</span> [][]<span style="color:#a6e22e">Reco</span>, <span style="color:#a6e22e">k</span> <span style="color:#66d9ef">int</span>) []<span style="color:#a6e22e">Reco</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">h</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">headHeap</span>{}
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">heap</span>.<span style="color:#a6e22e">Init</span>(<span style="color:#a6e22e">h</span>)
@@ -509,8 +507,8 @@ our insert is also simple</li>
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">out</span>
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>please find the heap definitons here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/internal/trie/heap.go">heap</a></p>
-<p>search and suggesting from our prefix index becomes extremely simple now.we dont need to traverse anything to get the words to suggest, we just need to ask</p>
+</span></span></code></pre></div><p>please find the heap definitions here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/internal/trie/heap.go">heap</a></p>
+<p>searching and suggesting from our prefix index becomes extremely simple now. we don&rsquo;t need to traverse anything to get the words to suggest, we just need to ask</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">pi</span> <span style="color:#a6e22e">PrefixIndex</span>) <span style="color:#a6e22e">Suggest</span>(<span style="color:#a6e22e">prefix</span> <span style="color:#66d9ef">string</span>) []<span style="color:#66d9ef">string</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">recos</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">prefix</span>]
@@ -523,22 +521,22 @@ our insert is also simple</li>
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">result</span>
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>but as our dataset becomes large , the number of prefix we store increases very rapidly and the performance of prefix-index might become even worse than using optimizied trie.</p>
-<p>we will discuss about these at length in the benchmarks section</p>
+</span></span></code></pre></div><p>but as our dataset becomes large, the number of prefixes we store increases very rapidly, and the performance of prefix-index might become even worse than using the optimized trie.</p>
+<p>we will discuss these at length in the benchmarks section</p>
 <h2 id="phase-3-prefix-index-hash-map---sample-of-v2-dataset-3-mil-queries">Phase 3: [PREFIX INDEX HASH MAP - SAMPLE OF V2 Dataset (3 mil queries)]<a hidden class="anchor" aria-hidden="true" href="#phase-3-prefix-index-hash-map---sample-of-v2-dataset-3-mil-queries">#</a></h2>
-<p>i have worked on a sapmle of V2 dataset (which has 9.6 mil records), which has 3 mil queries, and put the trie and prefix index hash map into memory and tried to test the implementation. while it worked, it almost consumed all the RAM on my machine. which is understandable because of the nature of the data we store (many prefixes for a single phrase and their cache - top-k words for each prefix)</p>
-<p>so instead of working on that architecture, i have moved to a 3 tier serving arch, explained below</p>
+<p>i have worked on a sample of the V2 dataset (which has 9.6 mil records), specifically 3 mil queries, and put the trie and prefix-index hash map into memory to test the implementation. while it worked, it almost consumed all the RAM on my machine, which is understandable because of the nature of the data we store (many prefixes for a single phrase and their cache - the top-k words for each prefix)</p>
+<p>so instead of working on that architecture, i have moved to a 3-tier serving architecture, explained below</p>
 <h2 id="phase-4-3-tier-serving">Phase 4: [3-TIER SERVING]<a hidden class="anchor" aria-hidden="true" href="#phase-4-3-tier-serving">#</a></h2>
 <h3 id="the-three-tiers">The three tiers<a hidden class="anchor" aria-hidden="true" href="#the-three-tiers">#</a></h3>
 <ol>
-<li>in-memory: prefix-index hash map of n most frequently occuring prefixes (this should ideally be n most searched queries (by the user if implementing at a user level))</li>
-<li>redis: lfu (least frequently used cache) of m most frequently occuring prefixes - this should be most searched in realword case</li>
-<li>db: mongodb collection containing all the requried data of our 9.6 mil queries (we will have a robust seeder to seed the db)</li>
+<li>in-memory: prefix-index hash map of the n most frequently occurring prefixes (this should ideally be the n most searched queries, by the user, if implementing at a user level)</li>
+<li>redis: an lfu (least frequently used) cache of the m most frequently occurring prefixes - this should be the most searched in a real-world case</li>
+<li>db: mongodb collection containing all the required data of our 9.6 mil queries (we will have a robust seeder to seed the db)</li>
 </ol>
-<p>obviously , m&raquo;n. we keep a very small subset of queries in in-memory state and considerable number of prefix in redis.</p>
+<p>obviously, m &raquo; n. we keep a very small subset of queries in memory and a considerable number of prefixes in redis.</p>
 <h3 id="mongodb">MongoDB<a hidden class="anchor" aria-hidden="true" href="#mongodb">#</a></h3>
 <ol>
-<li>we seed our mongodb collection using our V2 dataset, similar to how we have done in our phase 1 and 2, seeding our implementation item (trie / prefix-index) using our V1 dataset
+<li>we seed our mongodb collection using our V2 dataset, similar to how we did in phases 1 and 2, where we seeded our implementation (trie / prefix-index) using the V1 dataset
 a record in our mongodb collection will look like</li>
 </ol>
 <pre tabindex="0"><code>[
@@ -559,11 +557,11 @@ a record in our mongodb collection will look like</li>
     ]
   }
 ]
-</code></pre><p>you can easily draw parallels to our prefix-index hash map version to how we store our records to monogdb.</p>
+</code></pre><p>you can easily draw parallels between our prefix-index hash map version and how we store our records in mongodb.</p>
 <h3 id="seeder---working">Seeder - Working<a hidden class="anchor" aria-hidden="true" href="#seeder---working">#</a></h3>
 <h4 id="definitions">Definitions<a hidden class="anchor" aria-hidden="true" href="#definitions">#</a></h4>
-<p>our seeder is a simple,recursive and concurrent.
-lets introduce 3 terms now</p>
+<p>our seeder is simple, recursive, and concurrent.
+let&rsquo;s introduce 3 terms now</p>
 <ol>
 <li><code>bucket</code>: we will have a bucket for a prefix</li>
 <li><code>bucket metrics</code>: the metrics that define the bucket</li>
@@ -574,16 +572,16 @@ lets introduce 3 terms now</p>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">End</span>              <span style="color:#66d9ef">int64</span>
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">DistinctPrefixes</span> <span style="color:#66d9ef">int64</span>
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>if you see, we can identify to which prefix this bucket belongs to using the <code>Prefix</code> field.</p>
+</span></span></code></pre></div><p>as you can see, we can identify which prefix a bucket belongs to using the <code>Prefix</code> field.</p>
 <ol start="3">
-<li><code>build</code>: building prefix-index hash map for each of the bucket. this is what we will execute concurrently (using goroutines to build <code>BucketMetrics</code> for each prefix)</li>
-<li><code>merge</code>: merge the prefix-index we built in to mongo (why merge instead of write/insert: explained below)</li>
+<li><code>build</code>: building a prefix-index hash map for each bucket. this is what we will execute concurrently (using goroutines to build <code>BucketMetrics</code> for each prefix)</li>
+<li><code>merge</code>: merging the prefix-index we built into mongo (why merge instead of write/insert is explained below)</li>
 </ol>
 <h4 id="why-recursive">Why Recursive<a hidden class="anchor" aria-hidden="true" href="#why-recursive">#</a></h4>
 <ol>
-<li>all the buckets say, all the phrases that start with a, b, c &hellip;z do not contribute similar number of prefixes. we will have a zip-f ish distribution</li>
+<li>all the buckets, say all the phrases that start with a, b, c &hellip; z, do not contribute a similar number of prefixes. we will have a zipf-ish distribution</li>
 </ol>
-<p>in our V2 dataset, look at the number of phrases that start with a different character</p>
+<p>in our V2 dataset, look at the number of phrases that start with each character:</p>
 <pre tabindex="0"><code>0 1294
 1 35060
 2 15410
@@ -620,22 +618,22 @@ w 570821
 x 2504
 y 82832
 z 4643
-</code></pre><p>now the distinct prefixes contributed by each bucket will be definitely more and for that bucket if we proceed to build the prefix index, where in we need to store all the distinct prefixes and the top-k words, that definitely won&rsquo;t in my system memory.</p>
+</code></pre><p>now the distinct prefixes contributed by each bucket will definitely be more, and if we proceed to build the prefix index for that bucket - where we need to store all the distinct prefixes and their top-k words - that definitely won&rsquo;t fit in my system memory.</p>
 <blockquote>
-<p>solution?: we need to split each bucket until we can fit the prefix-index hash map built for that bucket in our memory</p>
+<p>solution?: split each bucket until we can fit the prefix-index hash map built for that bucket in memory</p>
 </blockquote>
-<p>but how we split? how do we estimate memory: <code>enter our tiny experiment to find out whether we can proceed to build this bucket or split it further</code></p>
+<p>but how do we split, and how do we estimate memory? enter our tiny experiment to find out whether we can proceed to build a bucket or split it further</p>
 <h3 id="memory-estimation">Memory Estimation<a hidden class="anchor" aria-hidden="true" href="#memory-estimation">#</a></h3>
 <p>you can find the end to end code here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/cmd/mem_est/main.go">mem_est</a></p>
 <p>what we do is,</p>
 <ol>
-<li>take sample from the V2 dataset (here i took 2 samples - 1mil and 3mil records)</li>
+<li>take a sample from the V2 dataset (here i took 2 samples - 1 mil and 3 mil records)</li>
 <li>
 <blockquote>
-<p>goal: roughly estimate the bytes per prefix that will be used to store a prefix + top-k words (words here will be, Word and Freq, exaclty what we use in our seeder).</p>
+<p>goal: roughly estimate the bytes per prefix needed to store a prefix + its top-k words (the words here will be <code>Word</code> and <code>Freq</code>, exactly what we use in our seeder).</p>
 </blockquote>
 </li>
-<li>this makes life easier, becuase we only need to calcualte the distinct prefixes that are found in a bucket and multiply it with <code>bytesPerPrefix</code> that we will get an estimate of ,from above and check if it falls under our memory budget. if yes, build the prefix index for that bucket ,else split further</li>
+<li>this makes life easier, because we only need to calculate the distinct prefixes found in a bucket, multiply that by <code>bytesPerPrefix</code> (an estimate we get from above), and check if it falls under our memory budget. if yes, build the prefix index for that bucket, else split further</li>
 </ol>
 <p>below are the findings</p>
 <h4 id="1m-row-dataset">1M-row dataset<a hidden class="anchor" aria-hidden="true" href="#1m-row-dataset">#</a></h4>
@@ -773,7 +771,7 @@ z 4643
 	</tbody>
 </table>
 <blockquote>
-<p>we can roughly estimate that the <code>bytesPerPrefix</code> will be 125-140. you can choose a number basis your machine&rsquo;s config. if you want to be conservative, you can also choose 150</p>
+<p>we can roughly estimate that <code>bytesPerPrefix</code> will be 125-140. you can choose a number based on your machine&rsquo;s config. if you want to be conservative, you can also choose 150</p>
 </blockquote>
 <p>now, our bucket processing becomes increasingly simple</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">processBucket</span>(<span style="color:#a6e22e">f</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">File</span>, <span style="color:#a6e22e">prefix</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">start</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">end</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">collection</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mongo</span>.<span style="color:#a6e22e">Collection</span>,
@@ -804,9 +802,9 @@ z 4643
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h3 id="concurrency">Concurrency<a hidden class="anchor" aria-hidden="true" href="#concurrency">#</a></h3>
-<p>we will use go-routines to build our prefix-indexes for different prefixes. but spinning a new go-routine for every child of a prefix defeats the purpose and we cannot continue with our seeder on local. we will have bounded concurrency here</p>
+<p>we will use go-routines to build our prefix-indexes for different prefixes. but spinning up a new go-routine for every child of a prefix defeats the purpose, and we cannot run our seeder locally like that. so we will have bounded concurrency here</p>
 <h4 id="channels">channels<a hidden class="anchor" aria-hidden="true" href="#channels">#</a></h4>
-<p>two buffered channels, 1 for processBucket to enqueue build jobs and 1 for index building workers to enqueue results</p>
+<p>two buffered channels: 1 for <code>processBucket</code> to enqueue build jobs, and 1 for the index building workers to enqueue results</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> (
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">indexBuildJobs</span> = make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">BucketMetrics</span>, <span style="color:#ae81ff">5</span>)
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">indexResults</span>   = make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">PI</span>, <span style="color:#ae81ff">5</span>)
@@ -818,8 +816,8 @@ z 4643
 <ul>
 <li>consumes from <code>indexBuildJobs</code> and sends onto <code>indexResults</code></li>
 <li>6 workers at anytime</li>
-<li>i used <code>const memoryBudget = 500 * MB</code> , a memory budget of 500mb in our seeder, and 6 index building worker running at any time ensures that the seeder comfortably executes, leaving the head room for mongo process and other processes (i will detail these in a future blog)</li>
-<li>with this config, my system memory usage never exceeds <code>10GB</code> (needs better explaninability as to why it is 10gb, i will write that in a future blog as learnings, sorry :) )</li>
+<li>i used <code>const memoryBudget = 500 * MB</code>, a memory budget of 500mb in our seeder. 6 index building workers running at any time ensure that the seeder executes comfortably, leaving headroom for the mongo process and other processes (i will detail these in a future blog)</li>
+<li>with this config, my system memory usage never exceeds <code>10GB</code> (i still need to explain why it is 10gb; i will write that in a future blog as learnings, sorry :) )</li>
 </ul>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">IndexBuildingWorkers</span>(<span style="color:#a6e22e">path</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">wg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>) {
 </span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#66d9ef">range</span> <span style="color:#ae81ff">6</span> {
@@ -851,7 +849,7 @@ z 4643
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><ol>
-<li>the <code>buildPrefixIndex</code> is simialr to how we built our prefix-index in phase -2 but this will be done without a trie-intermediate</li>
+<li>the <code>buildPrefixIndex</code> is similar to how we built our prefix-index in phase 2, but this time without a trie as an intermediate step</li>
 </ol>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">buildPrefixIndex</span>(<span style="color:#a6e22e">f</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">File</span>, <span style="color:#a6e22e">child</span> <span style="color:#a6e22e">BucketMetrics</span>) <span style="color:#a6e22e">PI</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Seek</span>(<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">Start</span>, <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">SeekStart</span>)
@@ -901,13 +899,13 @@ z 4643
 </span></span><span style="display:flex;"><span>	close(<span style="color:#a6e22e">done</span>)
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><ol>
-<li>our <code>mergeIntoMongo</code> function, will merge the exsiting doc for the prefix (if already present in our mongodb colleciton) with the incoming one ,preserving the top-k words. it does this in batches or <code>batchSize=1000</code>. code here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/cmd/seeder/main.go">mergeIntoMongo</a></li>
+<li>our <code>mergeIntoMongo</code> function merges the existing doc for the prefix (if already present in our mongodb collection) with the incoming one, preserving the top-k words. it does this in batches of <code>batchSize=1000</code>. code here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/cmd/seeder/main.go">mergeIntoMongo</a></li>
 </ol>
 <h3 id="why-only-1-mongomergeworker">Why only 1 MongoMergeWorker<a hidden class="anchor" aria-hidden="true" href="#why-only-1-mongomergeworker">#</a></h3>
-<p>consider this, you are processing with 2 mongo merge workers, and one of the worker is processing prefix-index for bucket <code>th</code> and other is processing prefix-index for bucket <code>to</code>.</p>
-<p>both will update the document (they will update the top-k words) in mongodb with where <code>prefix=t</code>. they will race to update this, without proper locking semantics, there will be lost updates and race conditions. this can be solved by parititioning our mongo instance and having different mongo merge workers udpate different shards. i haven&rsquo;t done that in this arch, will include that in next steps and complete.</p>
+<p>consider this: you are processing with 2 mongo merge workers. one worker is building the prefix-index for bucket <code>th</code>, and the other is building the prefix-index for bucket <code>to</code>.</p>
+<p>both will update the document for <code>prefix=t</code> (they will update its top-k words). without proper locking semantics they will race, causing lost updates and race conditions. this can be solved by partitioning our mongo instance and having different mongo merge workers update different shards. i haven&rsquo;t done that in this architecture, so i will include it in the next steps.</p>
 <h3 id="scan">Scan<a hidden class="anchor" aria-hidden="true" href="#scan">#</a></h3>
-<p>when given a prefix, to our <code>Scan</code> function we will scan the file (our V2 dataset) to find out the children bucket boundaries and returns a <code>ScanResult</code> which our processBucket can use</p>
+<p>given a prefix, our <code>Scan</code> function scans the file (our V2 dataset) to find the children bucket boundaries and returns a <code>ScanResult</code> which <code>processBucket</code> can use</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ScanResult</span> <span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Children</span> []<span style="color:#a6e22e">BucketMetrics</span>
 </span></span><span style="display:flex;"><span>}
@@ -997,10 +995,10 @@ z 4643
 </span></span><span style="display:flex;"><span>	}
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h3 id="buckets-processed">Buckets Processed<a hidden class="anchor" aria-hidden="true" href="#buckets-processed">#</a></h3>
-<p>I have tried to visualize some part of the bucket recursive - splitting work using graphviz. hope the below images make sense</p>
+<p>I have tried to visualize part of the bucket recursive splitting work using graphviz. hope the images below make sense</p>
 <ol>
-<li>only the buckets that are show in this gallery are split and processed, rest all buckets are processed in one go, because they fit the memory estimate</li>
-<li>checkout the <code>t</code> bucket for a detailed split
+<li>only the buckets shown in this gallery are split and processed; all the rest are processed in one go, because they fit the memory estimate</li>
+<li>check out the <code>t</code> bucket for a detailed split
 <div class="hugo-gallery">
      
    
@@ -1057,8 +1055,8 @@ z 4643
 </li>
 </ol>
 <h2 id="benchmarks">Benchmarks<a hidden class="anchor" aria-hidden="true" href="#benchmarks">#</a></h2>
-<p>[will populate] - you can have a peak at: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/benchmarks.md">https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/benchmarks.md</a></p>
-<p>please note that that benchmarks are only for phase-1 and phase-2 will update this section with all phases</p>
+<p>[will populate] - you can have a peek at: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/benchmarks.md">https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/benchmarks.md</a></p>
+<p>please note that the benchmarks are only for phases 1 and 2. i will update this section with all the phases</p>
 <h2 id="request-flow">Request flow<a hidden class="anchor" aria-hidden="true" href="#request-flow">#</a></h2>
 <div class="mermaid">
   
@@ -1110,9 +1108,9 @@ flowchart TD
 
 <h1 id="next-steps">Next Steps<a hidden class="anchor" aria-hidden="true" href="#next-steps">#</a></h1>
 <ol>
-<li>Query logging + adaptive learning (Mongo/Redis)</li>
-<li>sharding and parallelizing seeding and see the impact on reads</li>
-<li>working on atomic replace arch, worker keeps the in-memory state and cache in update every x mins or something like that</li>
+<li>query logging + adaptive learning (Mongo/Redis)</li>
+<li>sharding and parallelizing seeding, and its impact on reads</li>
+<li>working on an atomic replace architecture where a worker keeps the in-memory state and cache in sync, updating every x mins or something like that</li>
 </ol>
 
 
