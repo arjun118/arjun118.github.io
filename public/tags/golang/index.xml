@@ -1,19 +1,55 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Golang on Cicada&#39;s Blog</title>
     <link>http://localhost:1313/tags/golang/</link>
     <description>Recent content in Golang on Cicada&#39;s Blog</description>
-    <generator>Hugo</generator>
+    <generator>Hugo -- 0.162.1</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 16 Jun 2026 23:21:46 +0530</lastBuildDate>
+    <lastBuildDate>Sun, 06 Sep 2026 12:03:23 +0530</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Search Autocomplete</title>
+      <link>http://localhost:1313/technical/search_autocomplete/</link>
+      <pubDate>Sun, 06 Sep 2026 12:03:23 +0530</pubDate>
+      <guid>http://localhost:1313/technical/search_autocomplete/</guid>
+      <description>&lt;p&gt;In this blog, i will try to explain how i build a 3-tier search autocomplete system using a google books ngram dataset. the dataset is not actual search queries dataset. i will explain how i curated the dataset.&lt;/p&gt;
+&lt;h1 id=&#34;design-decisions&#34;&gt;Design Decisions&lt;/h1&gt;
+&lt;ol&gt;
+&lt;li&gt;we will only be having a english corups, we will use unicode points.&lt;/li&gt;
+&lt;li&gt;our dataset will contain atmax 10 mil queries (no reasoning behind this - just a random number)&lt;/li&gt;
+&lt;li&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&#34;dataset&#34;&gt;Dataset&lt;/h1&gt;
+&lt;h2 id=&#34;format&#34;&gt;Format&lt;/h2&gt;
+&lt;p&gt;every dataset will be formatted into&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Building a Vod Backend in Golang Part 2</title>
+      <link>http://localhost:1313/technical/building_a_vod_backend_in_golang_part_2/</link>
+      <pubDate>Thu, 18 Jun 2026 23:54:25 +0530</pubDate>
+      <guid>http://localhost:1313/technical/building_a_vod_backend_in_golang_part_2/</guid>
+      <description>&lt;p&gt;we will be introducing nginx now, as a reverse proxy (acts on behalf of servers to field incoming client requests securely)&lt;/p&gt;
+&lt;p&gt;imma keep the name of the approaches simple&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Nginx Reverse Proxy&lt;/li&gt;
+&lt;li&gt;Nginx Reverse Proxy With Cache&lt;/li&gt;
+&lt;li&gt;X-Accel-Redirect&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;we will be seeing an extra file, &lt;code&gt;nginx.conf&lt;/code&gt; and some code changes in the application server.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s start then&lt;/p&gt;
+&lt;h1 id=&#34;implementations&#34;&gt;Implementations&lt;/h1&gt;
+&lt;h2 id=&#34;nginx-reverse-proxy-branch-nginx_reverse_proxy&#34;&gt;Nginx Reverse Proxy (&lt;code&gt;branch: nginx_reverse_proxy&lt;/code&gt;)&lt;/h2&gt;
+&lt;p&gt;The Provider and the Delivery Will still remain with our minio-instance.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Building a Vod Backend in Golang - Part 1</title>
       <link>http://localhost:1313/technical/building_a_vod_backend_in_golang_part_1/</link>
       <pubDate>Tue, 16 Jun 2026 23:21:46 +0530</pubDate>
       <guid>http://localhost:1313/technical/building_a_vod_backend_in_golang_part_1/</guid>
-      <description>&lt;p&gt;In this series (hope i continue to build this) we wil learn about building a scalable (eventually) video-on-demand backend in golang.&lt;/p&gt;&#xA;&lt;p&gt;We will go through a few naive implementations until we reach some architecture which is actually scalable (we won&amp;rsquo;t be using any CDN here, but our final pattern will be resembling that, say you can swap out local imlementation of video delivery with cdn easily)&lt;/p&gt;&#xA;&lt;p&gt;Code will be available at &lt;a href=&#34;https://github.com/arjun118/vod&#34;&gt;github&lt;/a&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;In this series (hope i continue to build this) we wil learn about building a scalable (eventually) video-on-demand backend in golang.&lt;/p&gt;
+&lt;p&gt;We will go through a few naive implementations until we reach some architecture which is actually scalable (we won&amp;rsquo;t be using any CDN here, but our final pattern will be resembling that, say you can swap out local imlementation of video delivery with cdn easily)&lt;/p&gt;
+&lt;p&gt;Code will be available at &lt;a href=&#34;https://github.com/arjun118/vod&#34;&gt;github&lt;/a&gt;&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

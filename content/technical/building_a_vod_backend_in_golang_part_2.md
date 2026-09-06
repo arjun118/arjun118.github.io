@@ -528,7 +528,7 @@ After receiving the `X-Accel-Redirect` header, Nginx:
 
 2. after cookie is issued, client can access the resource
 
-![x_accel_redirect_working_missing_auth_cookie](/images/x_accel_redirect_working.png)
+    ![x_accel_redirect_working_missing_auth_cookie](/images/x_accel_redirect_working.png)
 
 # Closing
 

@@ -1,0 +1,13 @@
+<div class="hugo-gallery">
+  {{ $folder := .Get 0 }}
+
+  {{ range .Page.Resources.Match (printf "%s/*.svg" $folder) }}
+    <a href="{{ .RelPermalink }}" class="hugo-gallery-item" target="_blank">
+      <img
+        src="{{ .RelPermalink }}"
+        alt="{{ .Name }}"
+        loading="lazy"
+      >
+    </a>
+  {{ end }}
+</div>

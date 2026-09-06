@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Search Autocomplete | Cicada&#39;s Blog</title>
+<meta name="keywords" content="technical, golang">
+<meta name="description" content="In this blog, i will try to explain how i build a 3-tier search autocomplete system using a google books ngram dataset. the dataset is not actual search queries dataset. i will explain how i curated the dataset.
+we will be building around “design top k most searched queries”.
+
+Full Code on my github
+
+Design Decisions
+
+we will only be having a english corups, we will use unicode points.
+our dataset will contain atmax 10 mil queries (no reasoning behind this - just a random number)
+
+
+Dataset
+Format
+every dataset will be formatted into">
+<meta name="author" content="Cicada">
+<link rel="canonical" href="http://localhost:1313/technical/search_autocomplete/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.2e4acdff7651f56e8591e2c4c9ef9f4cac6e9f4e54a76fd5fb265ea774dd107b.css" integrity="sha256-LkrN/3ZR9W6FkeLEye&#43;fTKxun05Up2/V&#43;yZep3TdEHs=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/technical/search_autocomplete/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Cicada&#39;s Blog (Alt + H)">Cicada&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archive/" title="Archive">
+                    <span>Archive</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="Tags">
+                    <span>Tags</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/technical/" title="Technical">
+                    <span>Technical</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/others/" title="Others">
+                    <span>Others</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:1313/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:1313/technical/">Technical blogs</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Search Autocomplete
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-meta"><span title='2026-09-06 12:03:23 +0530 IST'>September 6, 2026</span>&nbsp;·&nbsp;18 min&nbsp;·&nbsp;Cicada
+
+</div>
+  </header> <div class="toc">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#design-decisions" aria-label="Design Decisions">Design Decisions</a></li>
+                <li>
+                    <a href="#dataset" aria-label="Dataset">Dataset</a><ul>
+                        
+                <li>
+                    <a href="#format" aria-label="Format">Format</a></li>
+                <li>
+                    <a href="#v1-aol-queries" aria-label="V1 [AOL QUERIES]">V1 [AOL QUERIES]</a></li>
+                <li>
+                    <a href="#v2-google-books-ngram-dataset" aria-label="V2 [GOOGLE BOOKS NGRAM DATASET]">V2 [GOOGLE BOOKS NGRAM DATASET]</a></li></ul>
+                </li>
+                <li>
+                    <a href="#architecture" aria-label="Architecture">Architecture</a><ul>
+                        
+                <li>
+                    <a href="#phase-1-basic-trie---v1-dataset" aria-label="Phase 1: [BASIC TRIE - V1 Dataset]">Phase 1: [BASIC TRIE - V1 Dataset]</a><ul>
+                        
+                <li>
+                    <a href="#node" aria-label="Node">Node</a></li>
+                <li>
+                    <a href="#trie" aria-label="Trie">Trie</a></li>
+                <li>
+                    <a href="#building-the-trie" aria-label="Building the Trie">Building the Trie</a></li></ul>
+                </li>
+                <li>
+                    <a href="#phase-2-prefix-index-hash-map---v1-dataset" aria-label="Phase 2: [PREFIX INDEX HASH MAP - V1 Dataset]">Phase 2: [PREFIX INDEX HASH MAP - V1 Dataset]</a></li>
+                <li>
+                    <a href="#phase-3-prefix-index-hash-map---sample-of-v2-dataset-3-mil-queries" aria-label="Phase 3: [PREFIX INDEX HASH MAP - SAMPLE OF V2 Dataset (3 mil queries)]">Phase 3: [PREFIX INDEX HASH MAP - SAMPLE OF V2 Dataset (3 mil queries)]</a></li>
+                <li>
+                    <a href="#phase-4-3-tier-serving" aria-label="Phase 4: [3-TIER SERVING]">Phase 4: [3-TIER SERVING]</a><ul>
+                        
+                <li>
+                    <a href="#the-three-tiers" aria-label="The three tiers">The three tiers</a></li>
+                <li>
+                    <a href="#mongodb" aria-label="MongoDB">MongoDB</a></li>
+                <li>
+                    <a href="#seeder---working" aria-label="Seeder - Working">Seeder - Working</a><ul>
+                        
+                <li>
+                    <a href="#definitions" aria-label="Definitions">Definitions</a></li>
+                <li>
+                    <a href="#why-recursive" aria-label="Why Recursive">Why Recursive</a></li></ul>
+                </li>
+                <li>
+                    <a href="#memory-estimation" aria-label="Memory Estimation">Memory Estimation</a><ul>
+                        
+                <li>
+                    <a href="#1m-row-dataset" aria-label="1M-row dataset">1M-row dataset</a></li>
+                <li>
+                    <a href="#3m-row-dataset" aria-label="3M-row dataset">3M-row dataset</a></li></ul>
+                </li>
+                <li>
+                    <a href="#concurrency" aria-label="Concurrency">Concurrency</a><ul>
+                        
+                <li>
+                    <a href="#channels" aria-label="channels">channels</a></li>
+                <li>
+                    <a href="#workers" aria-label="workers">workers</a></li></ul>
+                </li>
+                <li>
+                    <a href="#why-only-1-mongomergeworker" aria-label="Why only 1 MongoMergeWorker">Why only 1 MongoMergeWorker</a></li>
+                <li>
+                    <a href="#scan" aria-label="Scan">Scan</a></li>
+                <li>
+                    <a href="#buckets-processed" aria-label="Buckets Processed">Buckets Processed</a></li></ul>
+                </li>
+                <li>
+                    <a href="#benchmarks" aria-label="Benchmarks">Benchmarks</a></li>
+                <li>
+                    <a href="#request-flow" aria-label="Request flow">Request flow</a></li></ul>
+                </li>
+                <li>
+                    <a href="#next-steps" aria-label="Next Steps">Next Steps</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p>In this blog, i will try to explain how i build a 3-tier search autocomplete system using a google books ngram dataset. the dataset is not actual search queries dataset. i will explain how i curated the dataset.</p>
+<p>we will be building around <code>“design top k most searched queries”.</code></p>
+<blockquote>
+<p>Full Code on my <a href="https://github.com/arjun118/system_design_implementations/tree/main/search_autocomplete">github</a></p>
+</blockquote>
+<h1 id="design-decisions">Design Decisions<a hidden class="anchor" aria-hidden="true" href="#design-decisions">#</a></h1>
+<ol>
+<li>we will only be having a english corups, we will use unicode points.</li>
+<li>our dataset will contain atmax 10 mil queries (no reasoning behind this - just a random number)</li>
+<li></li>
+</ol>
+<h1 id="dataset">Dataset<a hidden class="anchor" aria-hidden="true" href="#dataset">#</a></h1>
+<h2 id="format">Format<a hidden class="anchor" aria-hidden="true" href="#format">#</a></h2>
+<p>every dataset will be formatted into</p>
+<pre tabindex="0"><code>phrase\tfreq
+</code></pre><p>where <code>phrase</code> is the actual phrase and freq is the number of terms it is searched</p>
+<ol>
+<li>i have tried this with multiple datasets, but my dataset versions are roughly 2</li>
+</ol>
+<h2 id="v1-aol-queries">V1 [AOL QUERIES]<a hidden class="anchor" aria-hidden="true" href="#v1-aol-queries">#</a></h2>
+<ol>
+<li>I have used <a href="https://jeffhuang.com/search_query_logs/">aol_queries</a></li>
+<li>you can read about the dataset here - <a href="https://en.wikipedia.org/wiki/AOL_search_log_release">https://en.wikipedia.org/wiki/AOL_search_log_release</a></li>
+<li>please note that the dataset is not filtered and have nsfw words. i haven&rsquo;t filtered it too and used as-is. please use it at your discretion</li>
+<li>one good thing about this dataset is that i dont need to format this into <code>phrase\tfreq</code> format so we can use it directly</li>
+</ol>
+<p>sample records in ds:</p>
+<pre tabindex="0"><code>google	68513
+mapquest	37252
+google.com	29023
+ebay	28715
+yahoo.com	27669
+yahoo	26930
+myspace.com	22000
+internet	21996
+map quest	13366
+myspace	13005
+</code></pre><p>there are exactly <code>433614</code> records in this dataset. this should be comfortably doable on my machine (16GB RAM)</p>
+<h2 id="v2-google-books-ngram-dataset">V2 [GOOGLE BOOKS NGRAM DATASET]<a hidden class="anchor" aria-hidden="true" href="#v2-google-books-ngram-dataset">#</a></h2>
+<ol>
+<li>now this one is a bit tricky</li>
+<li>i have downloaded all these from - <a href="https://storage.googleapis.com/books/ngrams/books/datasetsv3.html">https://storage.googleapis.com/books/ngrams/books/datasetsv3.html</a>
+raw datasets:</li>
+</ol>
+<pre tabindex="0"><code>googlebooks-eng-all-5gram-20090715-0
+googlebooks-eng-all-5gram-20090715-248
+googlebooks-eng-all-5gram-20090715-374
+googlebooks-eng-all-5gram-20090715-795
+googlebooks-eng-fiction-all-2gram-20090715-7
+googlebooks-eng-fiction-all-2gram-20090715-24
+googlebooks-eng-fiction-all-2gram-20090715-46
+googlebooks-eng-fiction-all-2gram-20090715-51
+googlebooks-eng-fiction-all-2gram-20090715-59
+googlebooks-eng-fiction-all-3gram-20090715-7
+googlebooks-eng-fiction-all-3gram-20090715-56
+googlebooks-eng-fiction-all-3gram-20090715-156
+googlebooks-eng-fiction-all-3gram-20090715-165
+googlebooks-eng-fiction-all-3gram-20090715-168
+googlebooks-eng-fiction-all-4gram-20090715-125
+googlebooks-eng-fiction-all-4gram-20090715-154
+googlebooks-eng-fiction-all-4gram-20090715-285
+googlebooks-eng-fiction-all-4gram-20090715-307
+googlebooks-eng-fiction-all-4gram-20090715-340
+googlebooks-eng-fiction-all-4gram-20090715-352
+googlebooks-eng-us-all-5gram-20090715-178
+googlebooks-eng-us-all-5gram-20090715-344
+googlebooks-eng-us-all-5gram-20090715-492
+</code></pre><ol start="3">
+<li>they contain 2-gram,3-gram, 4-gram and 5-grams</li>
+<li>talked to deepseek and claude on how to convert these to my dataset format <code>phrase\tfreq</code></li>
+<li>you can find the dataset cleaning and creation code here - <a href="https://github.com/arjun118/system_design_implementations/tree/main/search_autocomplete/cmd/preprocess_ngrams">github</a></li>
+<li>i also have a another stage - performed a single time just before my seeding to monogdb (will discuss what this is in arch section)- but it goes something like this
+<ol>
+<li>if the start of the phrase is not a letter(unicode) or a digit,we remove that phrase - as i observed this helped me get rid of some illegible phrases starting with parentheses etc. the existence of these points makes sense in this dataset because the dataset is derived from google books ngram dataset</li>
+<li>we convert everythign to lower - meaning our implementation is not case-sensitive</li>
+</ol>
+</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">normalize</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">runes</span> <span style="color:#f92672">:=</span> []rune(<span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">TrimSpace</span>(<span style="color:#a6e22e">s</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> &lt; len(<span style="color:#a6e22e">runes</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">runes</span>[<span style="color:#a6e22e">i</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">unicode</span>.<span style="color:#a6e22e">IsLetter</span>(<span style="color:#a6e22e">r</span>) <span style="color:#f92672">||</span> <span style="color:#a6e22e">unicode</span>.<span style="color:#a6e22e">IsDigit</span>(<span style="color:#a6e22e">r</span>) {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">ToLower</span>(string(<span style="color:#a6e22e">runes</span>[<span style="color:#a6e22e">i</span>:]))
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol start="7">
+<li>lets look at how we can get to the clean <code>canonical_sorted.txt</code> which is in our desired dataset format for direct seeding</li>
+</ol>
+<pre tabindex="0"><code>1. take the file generated by `preprocess_ngrams` code.eg: `ds.txt`
+2. normalize each phrase in `ds.txt` and write to a file `normalized_ds.txt`
+3. sort this file lexographically using linux `sort` command
+4. aggregate the final file&#39;s duplicate queries and write to a final file: `canonical_sorted.txt`
+</code></pre><p>sample from <code>canonical_sorted.text</code></p>
+<pre tabindex="0"><code>0 &#34;&#34; for the&#34;	134862
+0 ( no pain	166498
+0 ) and after the	40000
+0 ) and the corresponding	131572
+0 ) can be	783047
+0 ) cannot be	65536
+0 ) does not satisfy	57135
+0 ) for the first	108436
+0 ) is equivalent to	100856
+0 ) is positive definite	58893
+</code></pre><p>we have around 9.6 mil records for our experiment</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>wc -l canonical_sorted.txt
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 9646759 canonical_sorted.txt</span>
+</span></span></code></pre></div><h1 id="architecture">Architecture<a hidden class="anchor" aria-hidden="true" href="#architecture">#</a></h1>
+<p>I have iteratively implemented the architecture. i will split into phases</p>
+<h2 id="phase-1-basic-trie---v1-dataset">Phase 1: [BASIC TRIE - V1 Dataset]<a hidden class="anchor" aria-hidden="true" href="#phase-1-basic-trie---v1-dataset">#</a></h2>
+<p>In this phase ,we will take the V1 Dataset</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>❯ wc -l aol_queries.txt
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 433614 aol_queries.txt</span>
+</span></span></code></pre></div><p>and build a trie. before going into any implementation details ,lets look at how our trie is implemented in go</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Reco</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Word</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Freq</span> <span style="color:#66d9ef">int64</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Node</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Val</span>      <span style="color:#66d9ef">rune</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Children</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">rune</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">IsWord</span>   <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Freq</span>     <span style="color:#66d9ef">int64</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Top</span>      []<span style="color:#a6e22e">Reco</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Trie</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Root</span>       <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">K</span>          <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">CacheDepth</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>this is just like basic tree but a node can have many children. field specifics - what we store is below</p>
+<h3 id="node">Node<a hidden class="anchor" aria-hidden="true" href="#node">#</a></h3>
+<ol>
+<li>a node in our trie</li>
+<li><code>Val</code>: the character this node holds (redundant ,no need to store, i just kept this because it gave me clarity while debugging)</li>
+<li><code>Children</code>: the children of this node</li>
+<li><code>IsWord</code>: will be true if a word is formed until the node</li>
+<li><code>Freq</code>: the frequency of this word/phrase from our datset</li>
+<li><code>Top</code>: we cache the top-K most occuring words(using <code>Reco</code> type - which has the word (phrase) and its freq) at this node, (optimization)</li>
+</ol>
+<h3 id="trie">Trie<a hidden class="anchor" aria-hidden="true" href="#trie">#</a></h3>
+<ol>
+<li><code>Root</code>: also a Node with <code>Val=&quot;&quot;</code></li>
+<li><code>K</code>: for this phase 1 implementation, we initalize this trie with a number K, the number of suggestions/auto-completes to be returned per query</li>
+<li><code>CacheDepth</code>: see point 6 from <code>Node</code>, we limit the depth post which no <code>Top</code> is populated at the node in the trie. we will cache the shallow nodes. this can be set to the number x where <code>x=the average number of characters a user types before selecting a suggestion'</code>. this helps us save memory when all the queries are answered from an in-memory trie (or prefix-index hash map)</li>
+</ol>
+<h3 id="building-the-trie">Building the Trie<a hidden class="anchor" aria-hidden="true" href="#building-the-trie">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BuildTrie</span>(<span style="color:#a6e22e">ipfile</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">Trie</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">trie</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewTrie</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">file</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#a6e22e">ipfile</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;error opening file,cannot build trie&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">file</span>.<span style="color:#a6e22e">Close</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">scanner</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">bufio</span>.<span style="color:#a6e22e">NewScanner</span>(<span style="color:#a6e22e">file</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Scan</span>() {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">line</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">TrimSpace</span>(<span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Text</span>())
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">phrase</span>, <span style="color:#a6e22e">freq</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ParseLine</span>(<span style="color:#a6e22e">line</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">trie</span>.<span style="color:#a6e22e">Insert</span>(<span style="color:#a6e22e">phrase</span>, <span style="color:#a6e22e">freq</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Err</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;failed build trie..%s&#34;</span>, <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>()))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">trie</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol>
+<li>we traverse our dataset line by line, parsing each line to give us a phrase and a frequency
+our insert is also simple</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Trie</span>) <span style="color:#a6e22e">Insert</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">freq</span> <span style="color:#66d9ef">int64</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// insert and return the freq of the word</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">node</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Root</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">x</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">s</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Children</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// if the node doesnot have children -lets initialize here</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Children</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">rune</span>]<span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">nextnode</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Children</span>[<span style="color:#a6e22e">x</span>]
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// add new</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">nextnode</span> = <span style="color:#a6e22e">NewNode</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">nextnode</span>.<span style="color:#a6e22e">Val</span> = <span style="color:#a6e22e">x</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Children</span>[<span style="color:#a6e22e">x</span>] = <span style="color:#a6e22e">nextnode</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">node</span> = <span style="color:#a6e22e">nextnode</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">IsWord</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Freq</span> = <span style="color:#a6e22e">freq</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>with this we can easily search our trie using</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Trie</span>) <span style="color:#a6e22e">Search</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">bool</span>, <span style="color:#66d9ef">bool</span>, <span style="color:#66d9ef">int64</span>, <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// search for a string in the trie</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// first bool -&gt; if the string exists</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// second bool -&gt; if the string is a word or not</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">node</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Root</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">x</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">s</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">nextnode</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Children</span>[<span style="color:#a6e22e">x</span>]
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>, <span style="color:#66d9ef">false</span>, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">node</span> = <span style="color:#a6e22e">nextnode</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>, <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">IsWord</span>, <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Freq</span>, <span style="color:#a6e22e">node</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>you can find the whole trie implementation here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/internal/trie/trie.go">github_trie</a></p>
+<h2 id="phase-2-prefix-index-hash-map---v1-dataset">Phase 2: [PREFIX INDEX HASH MAP - V1 Dataset]<a hidden class="anchor" aria-hidden="true" href="#phase-2-prefix-index-hash-map---v1-dataset">#</a></h2>
+<ol>
+<li>what will include here is a simple hashmap. every prefix that can be formed while traversing the trie will be a <code>key</code> for the hashmap. the value will be what want to return if that prefix is typed (the search query) i.e a list of top-K words.</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">PrefixIndex</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>][]<span style="color:#a6e22e">Reco</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewPrefixIndex</span>() <span style="color:#a6e22e">PrefixIndex</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">PrefixIndex</span>{}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>that&rsquo;s it, our prefix index is that simple.we can easily build the prefix index from our trie using</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Trie</span>) <span style="color:#a6e22e">walkForIndex</span>(<span style="color:#a6e22e">node</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Node</span>, <span style="color:#a6e22e">prefix</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">pi</span> <span style="color:#a6e22e">PrefixIndex</span>) []<span style="color:#a6e22e">Reco</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">cands</span> <span style="color:#f92672">:=</span> make([][]<span style="color:#a6e22e">Reco</span>, <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Children</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">IsWord</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">cands</span> = append(<span style="color:#a6e22e">cands</span>, []<span style="color:#a6e22e">Reco</span>{{<span style="color:#a6e22e">Word</span>: <span style="color:#a6e22e">prefix</span>, <span style="color:#a6e22e">Freq</span>: <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Freq</span>}})
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">child</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">node</span>.<span style="color:#a6e22e">Children</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">cands</span> = append(<span style="color:#a6e22e">cands</span>, <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">walkForIndex</span>(<span style="color:#a6e22e">child</span>, <span style="color:#a6e22e">prefix</span><span style="color:#f92672">+</span>string(<span style="color:#a6e22e">key</span>), <span style="color:#a6e22e">pi</span>))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">top</span> []<span style="color:#a6e22e">Reco</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">cands</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">top</span> = <span style="color:#a6e22e">cands</span>[<span style="color:#ae81ff">0</span>] <span style="color:#75715e">// already ≤ k meaning sorted</span>
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">cands</span>) &gt; <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">top</span> = <span style="color:#a6e22e">mergeTopK</span>(<span style="color:#a6e22e">cands</span>, <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">K</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">prefix</span>] = <span style="color:#a6e22e">top</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">top</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>notice the <code>mergeTopk</code>, we wont re-calcualte the top-K words for every node, we will perform a mergesort on all the children top-k words</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">mergeTopK</span>(<span style="color:#a6e22e">lists</span> [][]<span style="color:#a6e22e">Reco</span>, <span style="color:#a6e22e">k</span> <span style="color:#66d9ef">int</span>) []<span style="color:#a6e22e">Reco</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">h</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">headHeap</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">heap</span>.<span style="color:#a6e22e">Init</span>(<span style="color:#a6e22e">h</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">l</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">lists</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">l</span>) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">heap</span>.<span style="color:#a6e22e">Push</span>(<span style="color:#a6e22e">h</span>, <span style="color:#a6e22e">head</span>{<span style="color:#a6e22e">l</span>, <span style="color:#ae81ff">0</span>})
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">out</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">Reco</span>, <span style="color:#ae81ff">0</span>, <span style="color:#a6e22e">k</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">h</span>.<span style="color:#a6e22e">Len</span>() &gt; <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> len(<span style="color:#a6e22e">out</span>) &lt; <span style="color:#a6e22e">k</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">heap</span>.<span style="color:#a6e22e">Pop</span>(<span style="color:#a6e22e">h</span>).(<span style="color:#a6e22e">head</span>) <span style="color:#75715e">// take the largest current head</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">out</span> = append(<span style="color:#a6e22e">out</span>, <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">list</span>[<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">idx</span>])
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">idx</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span> &lt; len(<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">list</span>) { <span style="color:#75715e">// that list still has elements?</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">heap</span>.<span style="color:#a6e22e">Push</span>(<span style="color:#a6e22e">h</span>, <span style="color:#a6e22e">head</span>{<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">list</span>, <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">idx</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>}) <span style="color:#75715e">// put the next one in the race</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">out</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>please find the heap definitons here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/internal/trie/heap.go">heap</a></p>
+<p>search and suggesting from our prefix index becomes extremely simple now.we dont need to traverse anything to get the words to suggest, we just need to ask</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">pi</span> <span style="color:#a6e22e">PrefixIndex</span>) <span style="color:#a6e22e">Suggest</span>(<span style="color:#a6e22e">prefix</span> <span style="color:#66d9ef">string</span>) []<span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">recos</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">prefix</span>]
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">string</span>, <span style="color:#ae81ff">0</span>, len(<span style="color:#a6e22e">recos</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">recos</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">result</span> = append(<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Word</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">result</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>but as our dataset becomes large , the number of prefix we store increases very rapidly and the performance of prefix-index might become even worse than using optimizied trie.</p>
+<p>we will discuss about these at length in the benchmarks section</p>
+<h2 id="phase-3-prefix-index-hash-map---sample-of-v2-dataset-3-mil-queries">Phase 3: [PREFIX INDEX HASH MAP - SAMPLE OF V2 Dataset (3 mil queries)]<a hidden class="anchor" aria-hidden="true" href="#phase-3-prefix-index-hash-map---sample-of-v2-dataset-3-mil-queries">#</a></h2>
+<p>i have worked on a sapmle of V2 dataset (which has 9.6 mil records), which has 3 mil queries, and put the trie and prefix index hash map into memory and tried to test the implementation. while it worked, it almost consumed all the RAM on my machine. which is understandable because of the nature of the data we store (many prefixes for a single phrase and their cache - top-k words for each prefix)</p>
+<p>so instead of working on that architecture, i have moved to a 3 tier serving arch, explained below</p>
+<h2 id="phase-4-3-tier-serving">Phase 4: [3-TIER SERVING]<a hidden class="anchor" aria-hidden="true" href="#phase-4-3-tier-serving">#</a></h2>
+<h3 id="the-three-tiers">The three tiers<a hidden class="anchor" aria-hidden="true" href="#the-three-tiers">#</a></h3>
+<ol>
+<li>in-memory: prefix-index hash map of n most frequently occuring prefixes (this should ideally be n most searched queries (by the user if implementing at a user level))</li>
+<li>redis: lfu (least frequently used cache) of m most frequently occuring prefixes - this should be most searched in realword case</li>
+<li>db: mongodb collection containing all the requried data of our 9.6 mil queries (we will have a robust seeder to seed the db)</li>
+</ol>
+<p>obviously , m&raquo;n. we keep a very small subset of queries in in-memory state and considerable number of prefix in redis.</p>
+<h3 id="mongodb">MongoDB<a hidden class="anchor" aria-hidden="true" href="#mongodb">#</a></h3>
+<ol>
+<li>we seed our mongodb collection using our V2 dataset, similar to how we have done in our phase 1 and 2, seeding our implementation item (trie / prefix-index) using our V1 dataset
+a record in our mongodb collection will look like</li>
+</ol>
+<pre tabindex="0"><code>[
+  {
+    _id: ObjectId(&#39;6a9d1523913c9ac792f99562&#39;),
+    prefix: &#39;t&#39;,
+    top: [
+      { word: &#39;to the&#39;, freq: Long(&#39;6720554310&#39;) },
+      { word: &#39;to his&#39;, freq: Long(&#39;3844455287&#39;) },
+      { word: &#39;to him&#39;, freq: Long(&#39;3484776154&#39;) },
+      { word: &#39;the second&#39;, freq: Long(&#39;2717181751&#39;) },
+      { word: &#39;the fact&#39;, freq: Long(&#39;2654935890&#39;) },
+      { word: &#39;to that&#39;, freq: Long(&#39;2565932938&#39;) },
+      { word: &#39;their&#39;, freq: Long(&#39;2328023435&#39;) },
+      { word: &#39;this&#34;&#39;, freq: Long(&#39;2323063288&#39;) },
+      { word: &#39;tell you&#39;, freq: Long(&#39;2035448917&#39;) },
+      { word: &#39;they are&#39;, freq: Long(&#39;1903789632&#39;) }
+    ]
+  }
+]
+</code></pre><p>you can easily draw parallels to our prefix-index hash map version to how we store our records to monogdb.</p>
+<h3 id="seeder---working">Seeder - Working<a hidden class="anchor" aria-hidden="true" href="#seeder---working">#</a></h3>
+<h4 id="definitions">Definitions<a hidden class="anchor" aria-hidden="true" href="#definitions">#</a></h4>
+<p>our seeder is a simple,recursive and concurrent.
+lets introduce 3 terms now</p>
+<ol>
+<li><code>bucket</code>: we will have a bucket for a prefix</li>
+<li><code>bucket metrics</code>: the metrics that define the bucket</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">BucketMetrics</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Prefix</span>           <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Start</span>            <span style="color:#66d9ef">int64</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">End</span>              <span style="color:#66d9ef">int64</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">DistinctPrefixes</span> <span style="color:#66d9ef">int64</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>if you see, we can identify to which prefix this bucket belongs to using the <code>Prefix</code> field.</p>
+<ol start="3">
+<li><code>build</code>: building prefix-index hash map for each of the bucket. this is what we will execute concurrently (using goroutines to build <code>BucketMetrics</code> for each prefix)</li>
+<li><code>merge</code>: merge the prefix-index we built in to mongo (why merge instead of write/insert: explained below)</li>
+</ol>
+<h4 id="why-recursive">Why Recursive<a hidden class="anchor" aria-hidden="true" href="#why-recursive">#</a></h4>
+<ol>
+<li>all the buckets say, all the phrases that start with a, b, c &hellip;z do not contribute similar number of prefixes. we will have a zip-f ish distribution</li>
+</ol>
+<p>in our V2 dataset, look at the number of phrases that start with a different character</p>
+<pre tabindex="0"><code>0 1294
+1 35060
+2 15410
+3 9243
+4 6518
+5 5534
+6 4372
+7 3567
+8 3480
+9 2906
+a 1081054
+b 463271
+c 481223
+d 315831
+e 264935
+f 383647
+g 185792
+h 498113
+i 605340
+j 58559
+k 55729
+l 263414
+m 404064
+n 219218
+o 611757
+p 396727
+q 23578
+r 271870
+s 692986
+t 1420702
+u 117667
+v 83098
+w 570821
+x 2504
+y 82832
+z 4643
+</code></pre><p>now the distinct prefixes contributed by each bucket will be definitely more and for that bucket if we proceed to build the prefix index, where in we need to store all the distinct prefixes and the top-k words, that definitely won&rsquo;t in my system memory.</p>
+<blockquote>
+<p>solution?: we need to split each bucket until we can fit the prefix-index hash map built for that bucket in our memory</p>
+</blockquote>
+<p>but how we split? how do we estimate memory: <code>enter our tiny experiment to find out whether we can proceed to build this bucket or split it further</code></p>
+<h3 id="memory-estimation">Memory Estimation<a hidden class="anchor" aria-hidden="true" href="#memory-estimation">#</a></h3>
+<p>you can find the end to end code here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/cmd/mem_est/main.go">mem_est</a></p>
+<p>what we do is,</p>
+<ol>
+<li>take sample from the V2 dataset (here i took 2 samples - 1mil and 3mil records)</li>
+<li>
+<blockquote>
+<p>goal: roughly estimate the bytes per prefix that will be used to store a prefix + top-k words (words here will be, Word and Freq, exaclty what we use in our seeder).</p>
+</blockquote>
+</li>
+<li>this makes life easier, becuase we only need to calcualte the distinct prefixes that are found in a bucket and multiply it with <code>bytesPerPrefix</code> that we will get an estimate of ,from above and check if it falls under our memory budget. if yes, build the prefix index for that bucket ,else split further</li>
+</ol>
+<p>below are the findings</p>
+<h4 id="1m-row-dataset">1M-row dataset<a hidden class="anchor" aria-hidden="true" href="#1m-row-dataset">#</a></h4>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: right">K</th>
+					<th style="text-align: right">Distinct Prefixes</th>
+					<th style="text-align: right">HeapAlloc</th>
+					<th style="text-align: right">HeapInuse</th>
+					<th style="text-align: right">Sys</th>
+					<th style="text-align: right">Bytes / Prefix</th>
+					<th style="text-align: right">Total Recos</th>
+					<th style="text-align: right">Avg Recos / Prefix</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: right">10</td>
+					<td style="text-align: right">9,769,612</td>
+					<td style="text-align: right">1,180.09 MB</td>
+					<td style="text-align: right">1,370.91 MB</td>
+					<td style="text-align: right">1,441.41 MB</td>
+					<td style="text-align: right">126.66</td>
+					<td style="text-align: right">12,298,420</td>
+					<td style="text-align: right">1.26</td>
+			</tr>
+			<tr>
+					<td style="text-align: right">20</td>
+					<td style="text-align: right">9,769,612</td>
+					<td style="text-align: right">1,207.09 MB</td>
+					<td style="text-align: right">1,431.37 MB</td>
+					<td style="text-align: right">1,495.03 MB</td>
+					<td style="text-align: right">129.56</td>
+					<td style="text-align: right">12,935,621</td>
+					<td style="text-align: right">1.32</td>
+			</tr>
+			<tr>
+					<td style="text-align: right">30</td>
+					<td style="text-align: right">9,769,612</td>
+					<td style="text-align: right">1,207.10 MB</td>
+					<td style="text-align: right">1,456.12 MB</td>
+					<td style="text-align: right">1,621.05 MB</td>
+					<td style="text-align: right">129.56</td>
+					<td style="text-align: right">13,300,024</td>
+					<td style="text-align: right">1.36</td>
+			</tr>
+			<tr>
+					<td style="text-align: right">40</td>
+					<td style="text-align: right">9,769,612</td>
+					<td style="text-align: right">1,227.30 MB</td>
+					<td style="text-align: right">1,489.61 MB</td>
+					<td style="text-align: right">1,612.36 MB</td>
+					<td style="text-align: right">131.73</td>
+					<td style="text-align: right">13,555,907</td>
+					<td style="text-align: right">1.39</td>
+			</tr>
+			<tr>
+					<td style="text-align: right">50</td>
+					<td style="text-align: right">9,769,612</td>
+					<td style="text-align: right">1,227.30 MB</td>
+					<td style="text-align: right">1,369.29 MB</td>
+					<td style="text-align: right">1,594.04 MB</td>
+					<td style="text-align: right">131.73</td>
+					<td style="text-align: right">13,751,263</td>
+					<td style="text-align: right">1.41</td>
+			</tr>
+	</tbody>
+</table>
+<h4 id="3m-row-dataset">3M-row dataset<a hidden class="anchor" aria-hidden="true" href="#3m-row-dataset">#</a></h4>
+<table>
+	<thead>
+			<tr>
+					<th style="text-align: right">K</th>
+					<th style="text-align: right">Distinct Prefixes</th>
+					<th style="text-align: right">HeapAlloc</th>
+					<th style="text-align: right">HeapInuse</th>
+					<th style="text-align: right">Sys</th>
+					<th style="text-align: right">Bytes / Prefix</th>
+					<th style="text-align: right">Total Recos</th>
+					<th style="text-align: right">Avg Recos / Prefix</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td style="text-align: right">10</td>
+					<td style="text-align: right">26,369,788</td>
+					<td style="text-align: right">2,931.63 MB</td>
+					<td style="text-align: right">3,585.84 MB</td>
+					<td style="text-align: right">3,746.15 MB</td>
+					<td style="text-align: right">116.57</td>
+					<td style="text-align: right">33,943,880</td>
+					<td style="text-align: right">1.29</td>
+			</tr>
+			<tr>
+					<td style="text-align: right">20</td>
+					<td style="text-align: right">26,369,788</td>
+					<td style="text-align: right">3,013.93 MB</td>
+					<td style="text-align: right">3,573.92 MB</td>
+					<td style="text-align: right">3,716.96 MB</td>
+					<td style="text-align: right">119.85</td>
+					<td style="text-align: right">35,879,985</td>
+					<td style="text-align: right">1.36</td>
+			</tr>
+			<tr>
+					<td style="text-align: right">30</td>
+					<td style="text-align: right">26,369,788</td>
+					<td style="text-align: right">3,013.91 MB</td>
+					<td style="text-align: right">3,623.60 MB</td>
+					<td style="text-align: right">3,771.91 MB</td>
+					<td style="text-align: right">119.85</td>
+					<td style="text-align: right">36,991,688</td>
+					<td style="text-align: right">1.40</td>
+			</tr>
+			<tr>
+					<td style="text-align: right">40</td>
+					<td style="text-align: right">26,369,788</td>
+					<td style="text-align: right">3,075.59 MB</td>
+					<td style="text-align: right">3,744.35 MB</td>
+					<td style="text-align: right">3,900.10 MB</td>
+					<td style="text-align: right">122.30</td>
+					<td style="text-align: right">37,769,573</td>
+					<td style="text-align: right">1.43</td>
+			</tr>
+			<tr>
+					<td style="text-align: right">50</td>
+					<td style="text-align: right">26,369,788</td>
+					<td style="text-align: right">3,075.47 MB</td>
+					<td style="text-align: right">3,838.52 MB</td>
+					<td style="text-align: right">4,011.54 MB</td>
+					<td style="text-align: right">122.29</td>
+					<td style="text-align: right">38,369,444</td>
+					<td style="text-align: right">1.46</td>
+			</tr>
+	</tbody>
+</table>
+<blockquote>
+<p>we can roughly estimate that the <code>bytesPerPrefix</code> will be 125-140. you can choose a number basis your machine&rsquo;s config. if you want to be conservative, you can also choose 150</p>
+</blockquote>
+<p>now, our bucket processing becomes increasingly simple</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">processBucket</span>(<span style="color:#a6e22e">f</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">File</span>, <span style="color:#a6e22e">prefix</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">start</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">end</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">collection</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mongo</span>.<span style="color:#a6e22e">Collection</span>,
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">scanResult</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Scan</span>(<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">prefix</span>, <span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">end</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">child</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">scanResult</span>.<span style="color:#a6e22e">Children</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">estimated</span> <span style="color:#f92672">:=</span> float64(<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">DistinctPrefixes</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">bytesPerPrefix</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">estimated</span> <span style="color:#f92672">&lt;=</span> <span style="color:#a6e22e">memoryBudget</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">indexBuildJobs</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">child</span>
+</span></span><span style="display:flex;"><span>		} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(
+</span></span><span style="display:flex;"><span>				<span style="color:#e6db74">&#34;SPLIT  %-10s prefixes=%d estimated=%.2f MB\n&#34;</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">Prefix</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">DistinctPrefixes</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">estimated</span><span style="color:#f92672">/</span>(<span style="color:#ae81ff">1024</span><span style="color:#f92672">*</span><span style="color:#ae81ff">1024</span>),
+</span></span><span style="display:flex;"><span>			)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">processBucket</span>(
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">f</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">Prefix</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">Start</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">End</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">collection</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">ctx</span>,
+</span></span><span style="display:flex;"><span>			)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="concurrency">Concurrency<a hidden class="anchor" aria-hidden="true" href="#concurrency">#</a></h3>
+<p>we will use go-routines to build our prefix-indexes for different prefixes. but spinning a new go-routine for every child of a prefix defeats the purpose and we cannot continue with our seeder on local. we will have bounded concurrency here</p>
+<h4 id="channels">channels<a hidden class="anchor" aria-hidden="true" href="#channels">#</a></h4>
+<p>two buffered channels, 1 for processBucket to enqueue build jobs and 1 for index building workers to enqueue results</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">indexBuildJobs</span> = make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">BucketMetrics</span>, <span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">indexResults</span>   = make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">PI</span>, <span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><h4 id="workers">workers<a hidden class="anchor" aria-hidden="true" href="#workers">#</a></h4>
+<ol>
+<li><code>IndexBuildingWorkers</code></li>
+</ol>
+<ul>
+<li>consumes from <code>indexBuildJobs</code> and sends onto <code>indexResults</code></li>
+<li>6 workers at anytime</li>
+<li>i used <code>const memoryBudget = 500 * MB</code> , a memory budget of 500mb in our seeder, and 6 index building worker running at any time ensures that the seeder comfortably executes, leaving the head room for mongo process and other processes (i will detail these in a future blog)</li>
+<li>with this config, my system memory usage never exceeds <code>10GB</code> (needs better explaninability as to why it is 10gb, i will write that in a future blog as learnings, sorry :) )</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">IndexBuildingWorkers</span>(<span style="color:#a6e22e">path</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">wg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#66d9ef">range</span> <span style="color:#ae81ff">6</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// there are 6 workers at any time - working on building prefix indexes</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// each&#39;s memory limit is capped to 500mb (done via estimated memory from the processBucket)</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Go</span>(<span style="color:#66d9ef">func</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#a6e22e">path</span>) <span style="color:#75715e">// one handle per worker</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Close</span>()
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">child</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">indexBuildJobs</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">estimated</span> <span style="color:#f92672">:=</span> float64(<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">DistinctPrefixes</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">bytesPerPrefix</span>
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(
+</span></span><span style="display:flex;"><span>					<span style="color:#e6db74">&#34;BUILD  %-10s prefixes=%d estimated=%.2f MB\n&#34;</span>,
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">Prefix</span>,
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">DistinctPrefixes</span>,
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">estimated</span><span style="color:#f92672">/</span>(<span style="color:#ae81ff">1024</span><span style="color:#f92672">*</span><span style="color:#ae81ff">1024</span>),
+</span></span><span style="display:flex;"><span>				)
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">pi</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">buildPrefixIndex</span>(<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">child</span>)
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;QUEUEING - MERGE  %-10s prefixes=%d\n&#34;</span>,
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">Prefix</span>,
+</span></span><span style="display:flex;"><span>					len(<span style="color:#a6e22e">pi</span>),
+</span></span><span style="display:flex;"><span>				)
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">indexResults</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">pi</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol>
+<li>the <code>buildPrefixIndex</code> is simialr to how we built our prefix-index in phase -2 but this will be done without a trie-intermediate</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">buildPrefixIndex</span>(<span style="color:#a6e22e">f</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">File</span>, <span style="color:#a6e22e">child</span> <span style="color:#a6e22e">BucketMetrics</span>) <span style="color:#a6e22e">PI</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Seek</span>(<span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">Start</span>, <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">SeekStart</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">limited</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">LimitReader</span>(<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">End</span><span style="color:#f92672">-</span><span style="color:#a6e22e">child</span>.<span style="color:#a6e22e">Start</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">scanner</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">bufio</span>.<span style="color:#a6e22e">NewScanner</span>(<span style="color:#a6e22e">limited</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">pi</span> <span style="color:#f92672">:=</span> make(<span style="color:#a6e22e">PI</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Scan</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">phrase</span>, <span style="color:#a6e22e">freq</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">trie</span>.<span style="color:#a6e22e">ParseLine</span>(<span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Text</span>())
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">runeList</span> <span style="color:#f92672">:=</span> []rune(<span style="color:#a6e22e">phrase</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> len(<span style="color:#a6e22e">runeList</span>); <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">pref</span> <span style="color:#f92672">:=</span> string(<span style="color:#a6e22e">runeList</span>[:<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">pref</span>] <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">hp</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">trie</span>.<span style="color:#a6e22e">RecHeap</span>{}
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">heap</span>.<span style="color:#a6e22e">Init</span>(<span style="color:#a6e22e">hp</span>)
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">pref</span>] = <span style="color:#a6e22e">hp</span>
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">pref</span>].<span style="color:#a6e22e">Len</span>() &lt; <span style="color:#a6e22e">k</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">heap</span>.<span style="color:#a6e22e">Push</span>(<span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">pref</span>], <span style="color:#a6e22e">trie</span>.<span style="color:#a6e22e">Reco</span>{<span style="color:#a6e22e">Word</span>: <span style="color:#a6e22e">phrase</span>, <span style="color:#a6e22e">Freq</span>: <span style="color:#a6e22e">freq</span>})
+</span></span><span style="display:flex;"><span>			} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">pref</span>].<span style="color:#a6e22e">Top</span>().<span style="color:#a6e22e">Freq</span> &lt; <span style="color:#a6e22e">freq</span> {
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">heap</span>.<span style="color:#a6e22e">Pop</span>(<span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">pref</span>])
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">heap</span>.<span style="color:#a6e22e">Push</span>(<span style="color:#a6e22e">pi</span>[<span style="color:#a6e22e">pref</span>], <span style="color:#a6e22e">trie</span>.<span style="color:#a6e22e">Reco</span>{<span style="color:#a6e22e">Word</span>: <span style="color:#a6e22e">phrase</span>, <span style="color:#a6e22e">Freq</span>: <span style="color:#a6e22e">freq</span>})
+</span></span><span style="display:flex;"><span>				}
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Err</span>() <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Err</span>())
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">pi</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol start="2">
+<li><code>MongoMergeWorker</code></li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">MongoMergeWorker</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">collection</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mongo</span>.<span style="color:#a6e22e">Collection</span>, <span style="color:#a6e22e">done</span> <span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">pi</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">indexResults</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">mergeIntoMongo</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">collection</span>, <span style="color:#a6e22e">pi</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	close(<span style="color:#a6e22e">done</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol>
+<li>our <code>mergeIntoMongo</code> function, will merge the exsiting doc for the prefix (if already present in our mongodb colleciton) with the incoming one ,preserving the top-k words. it does this in batches or <code>batchSize=1000</code>. code here: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/cmd/seeder/main.go">mergeIntoMongo</a></li>
+</ol>
+<h3 id="why-only-1-mongomergeworker">Why only 1 MongoMergeWorker<a hidden class="anchor" aria-hidden="true" href="#why-only-1-mongomergeworker">#</a></h3>
+<p>consider this, you are processing with 2 mongo merge workers, and one of the worker is processing prefix-index for bucket <code>th</code> and other is processing prefix-index for bucket <code>to</code>.</p>
+<p>both will update the document (they will update the top-k words) in mongodb with where <code>prefix=t</code>. they will race to update this, without proper locking semantics, there will be lost updates and race conditions. this can be solved by parititioning our mongo instance and having different mongo merge workers udpate different shards. i haven&rsquo;t done that in this arch, will include that in next steps and complete.</p>
+<h3 id="scan">Scan<a hidden class="anchor" aria-hidden="true" href="#scan">#</a></h3>
+<p>when given a prefix, to our <code>Scan</code> function we will scan the file (our V2 dataset) to find out the children bucket boundaries and returns a <code>ScanResult</code> which our processBucket can use</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ScanResult</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Children</span> []<span style="color:#a6e22e">BucketMetrics</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Scan</span>(<span style="color:#a6e22e">f</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">File</span>, <span style="color:#a6e22e">prefix</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">start</span> <span style="color:#66d9ef">int64</span>, <span style="color:#a6e22e">end</span> <span style="color:#66d9ef">int64</span>) <span style="color:#a6e22e">ScanResult</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">f</span>.<span style="color:#a6e22e">Seek</span>(<span style="color:#a6e22e">start</span>, <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">SeekStart</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">limited</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">LimitReader</span>(<span style="color:#a6e22e">f</span>, <span style="color:#a6e22e">end</span><span style="color:#f92672">-</span><span style="color:#a6e22e">start</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">scanner</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">bufio</span>.<span style="color:#a6e22e">NewScanner</span>(<span style="color:#a6e22e">limited</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">prefixRunes</span> <span style="color:#f92672">:=</span> []rune(<span style="color:#a6e22e">prefix</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">prefixLen</span> <span style="color:#f92672">:=</span> len(<span style="color:#a6e22e">prefixRunes</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">children</span> []<span style="color:#a6e22e">BucketMetrics</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">currentChild</span> <span style="color:#66d9ef">string</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">childStart</span> <span style="color:#66d9ef">int64</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">childDP</span> <span style="color:#66d9ef">int64</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">childDP</span> = <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">prevPhrase</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">offset</span> <span style="color:#66d9ef">int64</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Scan</span>() {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">line</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Text</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">//advance offset</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">lineSize</span> <span style="color:#f92672">:=</span> int64(len(<span style="color:#a6e22e">line</span>) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">offset</span> <span style="color:#f92672">+=</span> <span style="color:#a6e22e">lineSize</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">phrase</span>, <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">trie</span>.<span style="color:#a6e22e">ParseLine</span>(<span style="color:#a6e22e">line</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">runes</span> <span style="color:#f92672">:=</span> []rune(<span style="color:#a6e22e">phrase</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// processing children, if have no extra text after the prefix for the current prefix, lets continue</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">runes</span>) <span style="color:#f92672">&lt;=</span> <span style="color:#a6e22e">prefixLen</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// if the prefix of the current phrase doesnot equal to prefix</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// continue - ideally this should not happend if we have built our canonical sorted dataset correclty - safety check</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">prefixLen</span> &gt; <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> !<span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">HasPrefix</span>(<span style="color:#a6e22e">phrase</span>, <span style="color:#a6e22e">prefix</span>) {
+</span></span><span style="display:flex;"><span>			panic(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(
+</span></span><span style="display:flex;"><span>				<span style="color:#e6db74">&#34;phrase %q outside prefix bucket %q&#34;</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">phrase</span>,
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">prefix</span>,
+</span></span><span style="display:flex;"><span>			))
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// child= prefix + next rune.</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">child</span> <span style="color:#f92672">:=</span> string(<span style="color:#a6e22e">runes</span>[:<span style="color:#a6e22e">prefixLen</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>])
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// new child bucket</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// but here the currentCHild is techncially previousChild isnt it?</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">child</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">currentChild</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// complete prev child</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">currentChild</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>				<span style="color:#a6e22e">children</span> = append(<span style="color:#a6e22e">children</span>, <span style="color:#a6e22e">BucketMetrics</span>{
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">Prefix</span>:           <span style="color:#a6e22e">currentChild</span>,
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">Start</span>:            <span style="color:#a6e22e">childStart</span>,
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">End</span>:              <span style="color:#a6e22e">start</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">offset</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">lineSize</span>,
+</span></span><span style="display:flex;"><span>					<span style="color:#a6e22e">DistinctPrefixes</span>: <span style="color:#a6e22e">childDP</span>,
+</span></span><span style="display:flex;"><span>				})
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">//new child</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">currentChild</span> = <span style="color:#a6e22e">child</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// since we already increased the offset, we need to substract the lineSize from offset to get the start of the</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// new child</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">childStart</span> = <span style="color:#a6e22e">start</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">offset</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">lineSize</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">childDP</span> = <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// reset lcp for every child.</span>
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">prevPhrase</span> = <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// count new distinct prefixes</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">childDP</span> <span style="color:#f92672">+=</span> int64(
+</span></span><span style="display:flex;"><span>			len(<span style="color:#a6e22e">runes</span>) <span style="color:#f92672">-</span> max(<span style="color:#a6e22e">prefixLen</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#a6e22e">lcp</span>(<span style="color:#a6e22e">phrase</span>, <span style="color:#a6e22e">prevPhrase</span>)),
+</span></span><span style="display:flex;"><span>		)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">prevPhrase</span> = <span style="color:#a6e22e">phrase</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">scanner</span>.<span style="color:#a6e22e">Err</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">//close final child</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">currentChild</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">children</span> = append(<span style="color:#a6e22e">children</span>, <span style="color:#a6e22e">BucketMetrics</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Prefix</span>:           <span style="color:#a6e22e">currentChild</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Start</span>:            <span style="color:#a6e22e">childStart</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">End</span>:              <span style="color:#a6e22e">start</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">offset</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">DistinctPrefixes</span>: <span style="color:#a6e22e">childDP</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ScanResult</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Children</span>: <span style="color:#a6e22e">children</span>,
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="buckets-processed">Buckets Processed<a hidden class="anchor" aria-hidden="true" href="#buckets-processed">#</a></h3>
+<p>I have tried to visualize some part of the bucket recursive - splitting work using graphviz. hope the below images make sense</p>
+<ol>
+<li>only the buckets that are show in this gallery are split and processed, rest all buckets are processed in one go, because they fit the memory estimate</li>
+<li>checkout the <code>t</code> bucket for a detailed split
+<div class="hugo-gallery">
+     
+   
+     
+       <a href="/technical/search_autocomplete/recursion_parts/a.svg" class="hugo-gallery-item" target="_blank">
+         <img
+           src="/technical/search_autocomplete/recursion_parts/a.svg"
+           alt="recursion_parts/a.svg"
+           loading="lazy"
+         >
+       </a>
+     
+       <a href="/technical/search_autocomplete/recursion_parts/i.svg" class="hugo-gallery-item" target="_blank">
+         <img
+           src="/technical/search_autocomplete/recursion_parts/i.svg"
+           alt="recursion_parts/i.svg"
+           loading="lazy"
+         >
+       </a>
+     
+       <a href="/technical/search_autocomplete/recursion_parts/o.svg" class="hugo-gallery-item" target="_blank">
+         <img
+           src="/technical/search_autocomplete/recursion_parts/o.svg"
+           alt="recursion_parts/o.svg"
+           loading="lazy"
+         >
+       </a>
+     
+       <a href="/technical/search_autocomplete/recursion_parts/root.svg" class="hugo-gallery-item" target="_blank">
+         <img
+           src="/technical/search_autocomplete/recursion_parts/root.svg"
+           alt="recursion_parts/root.svg"
+           loading="lazy"
+         >
+       </a>
+     
+       <a href="/technical/search_autocomplete/recursion_parts/s.svg" class="hugo-gallery-item" target="_blank">
+         <img
+           src="/technical/search_autocomplete/recursion_parts/s.svg"
+           alt="recursion_parts/s.svg"
+           loading="lazy"
+         >
+       </a>
+     
+       <a href="/technical/search_autocomplete/recursion_parts/t.svg" class="hugo-gallery-item" target="_blank">
+         <img
+           src="/technical/search_autocomplete/recursion_parts/t.svg"
+           alt="recursion_parts/t.svg"
+           loading="lazy"
+         >
+       </a>
+     
+   </div>
+</li>
+</ol>
+<h2 id="benchmarks">Benchmarks<a hidden class="anchor" aria-hidden="true" href="#benchmarks">#</a></h2>
+<p>[will populate] - you can have a peak at: <a href="https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/benchmarks.md">https://github.com/arjun118/system_design_implementations/blob/main/search_autocomplete/benchmarks.md</a></p>
+<p>please note that that benchmarks are only for phase-1 and phase-2 will update this section with all phases</p>
+<h2 id="request-flow">Request flow<a hidden class="anchor" aria-hidden="true" href="#request-flow">#</a></h2>
+<div class="mermaid">
+  
+flowchart TD
+
+    Start([Client requests Suggest prefix]) --> CheckMem{"1. In-Memory Cache?<br/>s.memory.Get prefix"}
+
+    %% L1 Memory Hit
+    CheckMem -- "Hit: ok == true" --> RetMem["Set source = in-memory"]
+
+    %% L2 Redis
+    CheckMem -- "Miss" --> CheckRedis{"2. Redis Cache?<br/>s.redis.Get prefix"}
+    CheckRedis -- "Hit: ok == true" --> RetRedis["Set source = cache"]
+
+    %% L3 MongoDB
+    CheckRedis -- "Miss" --> CheckDB["3. MongoDB Store<br/>s.mongo.Get prefix"]
+    CheckDB --> DBStatus{"Result?"}
+
+    DBStatus -- "Error / Not Found" --> RetErr["Return nil"]
+    DBStatus -- "Success" --> RetDB["Set source = db"]
+
+    %% Async write
+    RetDB -.-> Async["Async Goroutine<br/>s.redis.Set prefix, result"]
+    Async -.-> RedisNode[(Redis)]
+
+    %% Final formatting
+    RetMem --> Format["Extract []string from []Reco"]
+    RetRedis --> Format
+    RetDB --> Format
+    Format --> Done([Return suggestions, source])
+
+    classDef cache fill:#e1f5fe,stroke:#0288d1,stroke-width:1px;
+    classDef db fill:#e8f5e9,stroke:#388e3c,stroke-width:1px;
+
+    class CheckMem,CheckRedis cache;
+    class CheckDB,DBStatus db;
+
+
+</div>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs";
+
+  mermaid.initialize({
+    startOnLoad: true
+  });
+</script>
+
+
+<h1 id="next-steps">Next Steps<a hidden class="anchor" aria-hidden="true" href="#next-steps">#</a></h1>
+<ol>
+<li>Query logging + adaptive learning (Mongo/Redis)</li>
+<li>sharding and parallelizing seeding and see the impact on reads</li>
+<li>working on atomic replace arch, worker keeps the in-memory state and cache in update every x mins or something like that</li>
+</ol>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/technical/">Technical</a></li>
+      <li><a href="http://localhost:1313/tags/golang/">Golang</a></li>
+    </ul>
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Search Autocomplete on x"
+            href="https://x.com/intent/tweet/?text=Search%20Autocomplete&amp;url=http%3a%2f%2flocalhost%3a1313%2ftechnical%2fsearch_autocomplete%2f&amp;hashtags=technical%2cgolang">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Search Autocomplete on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2ftechnical%2fsearch_autocomplete%2f&amp;title=Search%20Autocomplete&amp;summary=Search%20Autocomplete&amp;source=http%3a%2f%2flocalhost%3a1313%2ftechnical%2fsearch_autocomplete%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Search Autocomplete on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2ftechnical%2fsearch_autocomplete%2f&title=Search%20Autocomplete">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Search Autocomplete on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2ftechnical%2fsearch_autocomplete%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Search Autocomplete on whatsapp"
+            href="https://api.whatsapp.com/send?text=Search%20Autocomplete%20-%20http%3a%2f%2flocalhost%3a1313%2ftechnical%2fsearch_autocomplete%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Search Autocomplete on telegram"
+            href="https://telegram.me/share/url?text=Search%20Autocomplete&amp;url=http%3a%2f%2flocalhost%3a1313%2ftechnical%2fsearch_autocomplete%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Search Autocomplete on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=Search%20Autocomplete&u=http%3a%2f%2flocalhost%3a1313%2ftechnical%2fsearch_autocomplete%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Cicada&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
