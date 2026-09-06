@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="auto">
+<html lang="en" dir="auto" data-theme="auto">
 
 <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,12 +11,11 @@
 I’m writing these based on my understanding while trying to keep the implementations accurate.
 Causal Scaled dot product attention
 
-
 This is the original (“vanilla”) attention mechanism proposed in the Attention Is All You Need paper.
 we will implement Causal (future tokens masked) scaled dot product self-attention">
 <meta name="author" content="Cicada">
 <link rel="canonical" href="http://localhost:1313/technical/attention_variations/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.615144ccc30452a576188339b08f20aa742077cd11d14488dc0791dadb71d090.css" integrity="sha256-YVFEzMMEUqV2GIM5sI8gqnQgd80R0USI3AeR2ttx0JA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.165ef0c40c0ac9d4ef5aabc62105f93352101d78c9995486123318b8581021dc.css" integrity="sha256-Fl7wxAwKydTvWqvGIQX5M1IQHXjJmVSGEjMYuFgQIdw=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
@@ -45,49 +44,46 @@ we will implement Causal (future tokens masked) scaled dot product self-attentio
                 --code-block-bg: rgb(46, 46, 51);
                 --code-bg: rgb(55, 56, 62);
                 --border: rgb(51, 51, 51);
+                color-scheme: dark;
             }
 
             .list {
                 background: var(--theme);
             }
 
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
+            .toc {
+                background: var(--entry);
             }
         }
 
     </style>
 </noscript>
-</head>
-
-<body class="" id="top">
 <script>
     if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
+        document.querySelector("html").dataset.theme = 'dark';
     } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
+       document.querySelector("html").dataset.theme = 'light';
     } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
     }
 
 </script>
-
-<header class="header">
-    <nav class="nav">
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
         <div class="logo">
             <a href="http://localhost:1313/" accesskey="h" title="Cicada&#39;s Blog (Alt + H)">Cicada&#39;s Blog</a>
             <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -103,7 +99,7 @@ we will implement Causal (future tokens masked) scaled dot product self-attentio
                 </button>
             </div>
         </div>
-        <ul id="menu">
+        <ul id="menu" class="menu">
             <li>
                 <a href="http://localhost:1313/" title="Home">
                     <span>Home</span>
@@ -136,68 +132,78 @@ we will implement Causal (future tokens masked) scaled dot product self-attentio
 
 <article class="post-single">
   <header class="post-header">
-    <div class="breadcrumbs"><a href="http://localhost:1313/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:1313/technical/">Technical blogs</a></div>
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/technical/">Technical blogs</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
     <h1 class="post-title entry-hint-parent">
       Self-Attention Variations
     </h1>
-    <div class="post-meta"><span title='2026-05-08 20:46:06 +0530 IST'>May 8, 2026</span>&nbsp;·&nbsp;10 min&nbsp;·&nbsp;Cicada
+    <div class="post-meta">
+
+<span title='2026-05-08 20:46:06 +0530 IST'>May 8, 2026</span>&nbsp;·&nbsp;<span>10 min</span>&nbsp;·&nbsp;<span>Cicada</span>
 
 </div>
-  </header> <div class="toc">
-    <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">Table of Contents</span>
-        </summary>
+  </header> <details class="toc"  open>
+    <summary accesskey="c" title="(Alt + C)">
+        <span class="title">Table of Contents</span>
+    </summary>
 
-        <div class="inner"><ul>
-                <li>
-                    <a href="#causal-scaled-dot-product-attention" aria-label="Causal Scaled dot product attention">Causal Scaled dot product attention</a><ul>
-                        
-                <li>
-                    <a href="#dummy-input-setup" aria-label="Dummy input setup">Dummy input setup</a></li>
-                <li>
-                    <a href="#code" aria-label="Code">Code</a></li>
-                <li>
-                    <a href="#explanation" aria-label="Explanation">Explanation</a></li></ul>
-                </li>
-                <li>
-                    <a href="#multi-head-attention" aria-label="Multi Head Attention">Multi Head Attention</a><ul>
-                        
-                <li>
-                    <a href="#code-1" aria-label="Code">Code</a></li>
-                <li>
-                    <a href="#explanation-1" aria-label="Explanation">Explanation</a><ul>
-                        
-                <li>
-                    <a href="#the-sequence-vs-the-features" aria-label="The Sequence vs. The Features">The Sequence vs. The Features</a></li>
-                <li>
-                    <a href="#the-inspectors-analogy" aria-label="The &ldquo;Inspectors&rdquo; Analogy">The &ldquo;Inspectors&rdquo; Analogy</a></li></ul>
-                </li></ul>
-                </li>
-                <li>
-                    <a href="#multi-query-attention" aria-label="Multi Query Attention">Multi Query Attention</a><ul>
-                        
-                <li>
-                    <a href="#code-2" aria-label="Code">Code</a></li></ul>
-                </li>
-                <li>
-                    <a href="#group-query-attention" aria-label="Group Query Attention">Group Query Attention</a><ul>
-                        
-                <li>
-                    <a href="#code-3" aria-label="Code">Code</a>
-                </li>
-            </ul>
+    <div class="inner"><ul>
+            <li>
+                <a href="#causal-scaled-dot-product-attention" aria-label="Causal Scaled dot product attention">Causal Scaled dot product attention</a><ul>
+                    
+            <li>
+                <a href="#dummy-input-setup" aria-label="Dummy input setup">Dummy input setup</a></li>
+            <li>
+                <a href="#code" aria-label="Code">Code</a></li>
+            <li>
+                <a href="#explanation" aria-label="Explanation">Explanation</a></li></ul>
             </li>
-            </ul>
-        </div>
-    </details>
-</div>
+            <li>
+                <a href="#multi-head-attention" aria-label="Multi Head Attention">Multi Head Attention</a><ul>
+                    
+            <li>
+                <a href="#code-1" aria-label="Code">Code</a></li>
+            <li>
+                <a href="#explanation-1" aria-label="Explanation">Explanation</a><ul>
+                    
+            <li>
+                <a href="#the-sequence-vs-the-features" aria-label="The Sequence vs. The Features">The Sequence vs. The Features</a></li>
+            <li>
+                <a href="#the-inspectors-analogy" aria-label="The &ldquo;Inspectors&rdquo; Analogy">The &ldquo;Inspectors&rdquo; Analogy</a></li></ul>
+            </li></ul>
+            </li>
+            <li>
+                <a href="#multi-query-attention" aria-label="Multi Query Attention">Multi Query Attention</a><ul>
+                    
+            <li>
+                <a href="#code-2" aria-label="Code">Code</a></li></ul>
+            </li>
+            <li>
+                <a href="#group-query-attention" aria-label="Group Query Attention">Group Query Attention</a><ul>
+                    
+            <li>
+                <a href="#code-3" aria-label="Code">Code</a>
+            </li>
+        </ul>
+        </li>
+        </ul>
+    </div>
+</details>
 
-  <div class="post-content"><p>As the title suggests, we will look at some self-attention mechanisms in this blog. These are by no means all the known attention mechanisms.
+  <div class="post-content md-content"><p>As the title suggests, we will look at some self-attention mechanisms in this blog. These are by no means all the known attention mechanisms.
 I’m writing these based on my understanding while trying to keep the implementations accurate.</p>
 <h1 id="causal-scaled-dot-product-attention">Causal Scaled dot product attention<a hidden class="anchor" aria-hidden="true" href="#causal-scaled-dot-product-attention">#</a></h1>
-<p><img loading="lazy" src="/images/attention_formula.png" alt="attention_formula"  />
-</p>
+<p><img alt="attention_formula" loading="lazy" src="/images/attention_formula.png"></p>
 <p>This is the original (“vanilla”) attention mechanism proposed in the Attention Is All You Need paper.</p>
 <p>we will implement Causal (future tokens masked) scaled dot product self-attention</p>
 <p>lets get our dummy inputs right</p>
@@ -268,8 +274,7 @@ I’m writing these based on my understanding while trying to keep the implement
 <li>apply dropout (for regularization and good generalization)</li>
 <li>finally calcuate the context vectors by multiplying attention weights with values</li>
 </ol>
-<p><img loading="lazy" src="/images/causal_sdpa.png" alt="causal_sdpa"  />
-</p>
+<p><img alt="causal_sdpa" loading="lazy" src="/images/causal_sdpa.png"></p>
 <p>check the outputs by running the below code</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>torch<span style="color:#f92672">.</span>manual_seed(<span style="color:#ae81ff">123</span>)
 </span></span><span style="display:flex;"><span>ca<span style="color:#f92672">=</span>CausalSelfAttention(d_in,d_out,config[<span style="color:#e6db74">&#39;context_length&#39;</span>],config[<span style="color:#e6db74">&#39;dropout&#39;</span>])
@@ -579,22 +584,31 @@ We do this because while Inspector 1 perfectly understands which cars have match
 <footer class="footer">
         <span>&copy; 2026 <a href="http://localhost:1313/">Cicada&#39;s Blog</a></span> · 
 
+    
+    
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
     </svg>
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
+    let menu = document.getElementById('menu');
     if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -621,25 +635,25 @@ We do this because while Inspector 1 perfectly understands which cars have match
 
 </script>
 <script>
-    var mybutton = document.getElementById("top-link");
+    var toplink = document.getElementById("top-link");
     window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
         } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
+            toplink.classList.add("hidden");
         }
     };
 
 </script>
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
             localStorage.setItem("pref-theme", 'light');
         } else {
-            document.body.classList.add('dark');
+            html.dataset.theme = 'dark';
             localStorage.setItem("pref-theme", 'dark');
         }
     })

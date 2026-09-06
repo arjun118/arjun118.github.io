@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="auto">
+<html lang="en" dir="auto" data-theme="auto">
 
 <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@ I&rsquo;ve picked up golang to learn this summer. so I thought building toy proj
 I was trying my hand at building a command line todo tool or task list project in gophercises. tbh it&rsquo;s pretty basic but i get to try out boltdb and the cobra tools which helps you in building command line applications faster.">
 <meta name="author" content="Cicada">
 <link rel="canonical" href="http://localhost:1313/technical/little_and_big_endian_in_go/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.615144ccc30452a576188339b08f20aa742077cd11d14488dc0791dadb71d090.css" integrity="sha256-YVFEzMMEUqV2GIM5sI8gqnQgd80R0USI3AeR2ttx0JA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.165ef0c40c0ac9d4ef5aabc62105f93352101d78c9995486123318b8581021dc.css" integrity="sha256-Fl7wxAwKydTvWqvGIQX5M1IQHXjJmVSGEjMYuFgQIdw=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
@@ -41,49 +41,46 @@ I was trying my hand at building a command line todo tool or task list project i
                 --code-block-bg: rgb(46, 46, 51);
                 --code-bg: rgb(55, 56, 62);
                 --border: rgb(51, 51, 51);
+                color-scheme: dark;
             }
 
             .list {
                 background: var(--theme);
             }
 
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
-            }
-
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
+            .toc {
+                background: var(--entry);
             }
         }
 
     </style>
 </noscript>
-</head>
-
-<body class="" id="top">
 <script>
     if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
+        document.querySelector("html").dataset.theme = 'dark';
     } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
+       document.querySelector("html").dataset.theme = 'light';
     } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
     }
 
 </script>
-
-<header class="header">
-    <nav class="nav">
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
         <div class="logo">
             <a href="http://localhost:1313/" accesskey="h" title="Cicada&#39;s Blog (Alt + H)">Cicada&#39;s Blog</a>
             <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -99,7 +96,7 @@ I was trying my hand at building a command line todo tool or task list project i
                 </button>
             </div>
         </div>
-        <ul id="menu">
+        <ul id="menu" class="menu">
             <li>
                 <a href="http://localhost:1313/" title="Home">
                     <span>Home</span>
@@ -132,29 +129,40 @@ I was trying my hand at building a command line todo tool or task list project i
 
 <article class="post-single">
   <header class="post-header">
-    <div class="breadcrumbs"><a href="http://localhost:1313/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:1313/technical/">Technical blogs</a></div>
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="/technical/">Technical blogs</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
     <h1 class="post-title entry-hint-parent">
       Little and Big Endian in Go
     </h1>
-    <div class="post-meta"><span title='2025-04-14 10:28:30 +0000 UTC'>April 14, 2025</span>&nbsp;·&nbsp;4 min&nbsp;·&nbsp;Cicada
+    <div class="post-meta">
+
+<span title='2025-04-14 10:28:30 +0000 UTC'>April 14, 2025</span>&nbsp;·&nbsp;<span>4 min</span>&nbsp;·&nbsp;<span>Cicada</span>
 
 </div>
-  </header> <div class="toc">
-    <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">Table of Contents</span>
-        </summary>
+  </header> <details class="toc"  open>
+    <summary accesskey="c" title="(Alt + C)">
+        <span class="title">Table of Contents</span>
+    </summary>
 
-        <div class="inner"><ul>
-                <li>
-                    <a href="#two-sides-of-endianness" aria-label="Two sides of Endianness">Two sides of Endianness</a>
-                </li>
-            </ul>
-        </div>
-    </details>
-</div>
+    <div class="inner"><ul>
+            <li>
+                <a href="#two-sides-of-endianness" aria-label="Two sides of Endianness">Two sides of Endianness</a>
+            </li>
+        </ul>
+    </div>
+</details>
 
-  <div class="post-content"><p>Hey there, good to see you here.</p>
+  <div class="post-content md-content"><p>Hey there, good to see you here.</p>
 <p>I&rsquo;ve picked up golang to learn this summer. so I thought building toy projects would be a good way to start with. In the process I stumbled upon <a href="https://courses.calhoun.io/courses/cor_gophercises">gophercises</a> which is arguably one of the best resource to learn to while having fun</p>
 <p>I was trying my hand at building a command line todo tool or task list <a href="https://courses.calhoun.io/lessons/les_goph_35">project in gophercises</a>. tbh it&rsquo;s pretty basic but i get to try out boltdb and the cobra tools which helps you in building command line applications faster.</p>
 <p>so this blog (not very technical) is just me reading about it. if you already know about endianness and how juggle with numbers in go, this one is probably not for you (you should skip it)</p>
@@ -219,8 +227,7 @@ I was trying my hand at building a command line todo tool or task list project i
 <p>let&rsquo;s focus on this piece of code</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">Put</span>(<span style="color:#a6e22e">itob</span>(int(<span style="color:#a6e22e">id</span>)), []byte(<span style="color:#a6e22e">task</span>))
 </span></span></code></pre></div><p>if we take a step back and look at <code>Put</code> in boltdb&rsquo;s documentation, we&rsquo;d find</p>
-<p><img loading="lazy" src="/images/bucket_put.png" alt="signature of Put   function"  />
-</p>
+<p><img alt="signature of Put   function" loading="lazy" src="/images/bucket_put.png"></p>
 <p>looking by the signature ,we can make out that we need to provide a slice of bytes as our key and as our value</p>
 <p>this is where we need to convert our task_id which is an integer to a slice of bytes. we can convert this into big endian representation or small endian representation while storing in the db</p>
 <p>let&rsquo;s see how we can convert int into big endian and little endian representations</p>
@@ -346,22 +353,31 @@ value: 1921, little endian representation: [129 7 0 0 0 0 0 0]
 <footer class="footer">
         <span>&copy; 2026 <a href="http://localhost:1313/">Cicada&#39;s Blog</a></span> · 
 
+    
+    
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
-<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
     </svg>
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
+    let menu = document.getElementById('menu');
     if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -388,25 +404,25 @@ value: 1921, little endian representation: [129 7 0 0 0 0 0 0]
 
 </script>
 <script>
-    var mybutton = document.getElementById("top-link");
+    var toplink = document.getElementById("top-link");
     window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
         } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
+            toplink.classList.add("hidden");
         }
     };
 
 </script>
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
             localStorage.setItem("pref-theme", 'light');
         } else {
-            document.body.classList.add('dark');
+            html.dataset.theme = 'dark';
             localStorage.setItem("pref-theme", 'dark');
         }
     })

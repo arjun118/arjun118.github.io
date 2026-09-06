@@ -4,7 +4,7 @@
     <title>Technical blogs on Cicada&#39;s Blog</title>
     <link>http://localhost:1313/technical/</link>
     <description>Recent content in Technical blogs on Cicada&#39;s Blog</description>
-    <generator>Hugo -- 0.162.1</generator>
+    <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 06 Sep 2026 12:03:23 +0530</lastBuildDate>
     <atom:link href="http://localhost:1313/technical/index.xml" rel="self" type="application/rss+xml" />
@@ -14,6 +14,10 @@
       <pubDate>Sun, 06 Sep 2026 12:03:23 +0530</pubDate>
       <guid>http://localhost:1313/technical/search_autocomplete/</guid>
       <description>&lt;p&gt;In this blog, i will try to explain how i build a 3-tier search autocomplete system using a google books ngram dataset. the dataset is not actual search queries dataset. i will explain how i curated the dataset.&lt;/p&gt;
+&lt;p&gt;we will be building around &lt;code&gt;“design top k most searched queries”.&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Full Code on my &lt;a href=&#34;https://github.com/arjun118/system_design_implementations/tree/main/search_autocomplete&#34;&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
 &lt;h1 id=&#34;design-decisions&#34;&gt;Design Decisions&lt;/h1&gt;
 &lt;ol&gt;
 &lt;li&gt;we will only be having a english corups, we will use unicode points.&lt;/li&gt;
@@ -90,8 +94,7 @@
       <description>&lt;p&gt;As the title suggests, we will look at some self-attention mechanisms in this blog. These are by no means all the known attention mechanisms.
 I’m writing these based on my understanding while trying to keep the implementations accurate.&lt;/p&gt;
 &lt;h1 id=&#34;causal-scaled-dot-product-attention&#34;&gt;Causal Scaled dot product attention&lt;/h1&gt;
-&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/images/attention_formula.png&#34; alt=&#34;attention_formula&#34;  /&gt;
-&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;attention_formula&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/images/attention_formula.png&#34;&gt;&lt;/p&gt;
 &lt;p&gt;This is the original (“vanilla”) attention mechanism proposed in the Attention Is All You Need paper.&lt;/p&gt;
 &lt;p&gt;we will implement Causal (future tokens masked) scaled dot product self-attention&lt;/p&gt;</description>
     </item>
@@ -175,8 +178,7 @@ quickly since it&amp;rsquo;s relatively a simple topic&lt;/p&gt;
       <guid>http://localhost:1313/technical/difference_between_handler_handlerfunc_handle_handlefunc_in_go/</guid>
       <description>&lt;p&gt;Let&amp;rsquo;s see what is the difference between Handler, HandlerFunc, Handle, HandleFunc in the net/http package in go and how to use them&lt;/p&gt;
 &lt;h1 id=&#34;handler&#34;&gt;Handler&lt;/h1&gt;
-&lt;p&gt;&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/images/handler.png&#34; alt=&#34;Handler definition&#34;  /&gt;
-&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&#34;Handler definition&#34; loading=&#34;lazy&#34; src=&#34;http://localhost:1313/images/handler.png&#34;&gt;&lt;/p&gt;
 &lt;blockquote&gt;
 &lt;p&gt;type: &lt;code&gt;interface&lt;/code&gt;&lt;/p&gt;
 &lt;/blockquote&gt;

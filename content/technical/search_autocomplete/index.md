@@ -1,6 +1,6 @@
 +++
 date = '2026-09-06T12:03:23+05:30'
-draft = true
+draft = false
 title = 'Search Autocomplete'
 tags=['technical',"golang"]
 +++

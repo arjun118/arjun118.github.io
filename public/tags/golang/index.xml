@@ -4,7 +4,7 @@
     <title>Golang on Cicada&#39;s Blog</title>
     <link>http://localhost:1313/tags/golang/</link>
     <description>Recent content in Golang on Cicada&#39;s Blog</description>
-    <generator>Hugo -- 0.162.1</generator>
+    <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 06 Sep 2026 12:03:23 +0530</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/golang/index.xml" rel="self" type="application/rss+xml" />
@@ -14,6 +14,10 @@
       <pubDate>Sun, 06 Sep 2026 12:03:23 +0530</pubDate>
       <guid>http://localhost:1313/technical/search_autocomplete/</guid>
       <description>&lt;p&gt;In this blog, i will try to explain how i build a 3-tier search autocomplete system using a google books ngram dataset. the dataset is not actual search queries dataset. i will explain how i curated the dataset.&lt;/p&gt;
+&lt;p&gt;we will be building around &lt;code&gt;“design top k most searched queries”.&lt;/code&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Full Code on my &lt;a href=&#34;https://github.com/arjun118/system_design_implementations/tree/main/search_autocomplete&#34;&gt;github&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
 &lt;h1 id=&#34;design-decisions&#34;&gt;Design Decisions&lt;/h1&gt;
 &lt;ol&gt;
 &lt;li&gt;we will only be having a english corups, we will use unicode points.&lt;/li&gt;
