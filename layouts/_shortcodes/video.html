@@ -1,0 +1,12 @@
+<div style="display: flex; justify-content: center; margin: 2rem 0;">
+  <video
+    controls
+    preload="metadata"
+    style="width: 100%; max-width: 900px; border-radius: 8px;"
+  >
+    <source
+      src="{{ (.Page.Resources.GetMatch (.Get 0)).RelPermalink }}"
+      type="video/mp4"
+    >
+  </video>
+</div>

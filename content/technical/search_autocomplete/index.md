@@ -803,6 +803,10 @@ flowchart TD
 
 {{< /mermaid >}}
 
+## Demo
+
+{{< video "demo/demo.mp4" >}}
+
 # Next Steps
 
 1. query logging + adaptive learning (Mongo/Redis)
